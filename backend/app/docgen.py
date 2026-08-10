@@ -23,6 +23,28 @@ _PLACEHOLDER_ALIASES = {
 }
 
 
+def _run_libreoffice(command: list[str], timeout: int, error_message: str) -> subprocess.CompletedProcess[str]:
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            "LibreOffice is not installed or not found in PATH"
+        ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(error_message) from exc
+
+    if result.returncode != 0:
+        logger.error("LibreOffice stderr: %s", result.stderr)
+        raise RuntimeError(f"LibreOffice command failed: {result.stderr.strip()}")
+
+    return result
+
+
 def _decode_signature(signature_base64: str) -> bytes:
     """Strip optional data-URL prefix and return raw PNG bytes."""
     if "," in signature_base64:
@@ -49,7 +71,7 @@ def _normalize_template_expression(raw_expression: str) -> tuple[str, str | None
 
 
 def _prepare_template_for_render(template_path: str | Path, output_dir: str | Path, output_basename: str) -> tuple[Path, list[str]]:
-    source = Path(template_path)
+    source = _resolve_renderable_template(template_path=template_path, output_dir=output_dir)
     normalized_path = Path(output_dir) / f"{output_basename}_template.docx"
     rewritten_placeholders: list[str] = []
     suspicious_placeholders: list[str] = []
@@ -77,6 +99,38 @@ def _prepare_template_for_render(template_path: str | Path, output_dir: str | Pa
         logger.info("Normalized legacy placeholders in %s: %s", source.name, ", ".join(cleaned))
 
     return normalized_path, sorted(set(suspicious_placeholders))
+
+
+def _resolve_renderable_template(template_path: str | Path, output_dir: str | Path) -> Path:
+    source = Path(template_path)
+    suffix = source.suffix.lower()
+    if suffix == ".docx":
+        return source
+    if suffix != ".doc":
+        raise RuntimeError(f"Unsupported template format: {source.suffix or '<none>'}")
+
+    converted_path = Path(output_dir) / f"{source.stem}.docx"
+    cmd = [
+        "libreoffice",
+        "--headless",
+        "--convert-to",
+        "docx",
+        "--outdir",
+        str(Path(output_dir)),
+        str(source),
+    ]
+    logger.info("Converting DOC template to DOCX: %s", source)
+    _run_libreoffice(
+        command=cmd,
+        timeout=120,
+        error_message="LibreOffice DOCX conversion timed out",
+    )
+
+    if not converted_path.exists():
+        raise RuntimeError(f"DOCX template not found after conversion: {converted_path}")
+
+    logger.info("DOC template converted to DOCX: %s", converted_path)
+    return converted_path
 
 
 def generate_docx(
@@ -148,23 +202,11 @@ def convert_to_pdf(docx_path: Path, output_dir: Path) -> Path:
         str(docx_path),
     ]
     logger.info("Running LibreOffice: %s", " ".join(cmd))
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-    except FileNotFoundError as exc:
-        raise RuntimeError(
-            "LibreOffice is not installed or not found in PATH"
-        ) from exc
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError("LibreOffice conversion timed out") from exc
-
-    if result.returncode != 0:
-        logger.error("LibreOffice stderr: %s", result.stderr)
-        raise RuntimeError(f"LibreOffice conversion failed: {result.stderr.strip()}")
+    _run_libreoffice(
+        command=cmd,
+        timeout=120,
+        error_message="LibreOffice conversion timed out",
+    )
 
     pdf_path = output_dir / (docx_path.stem + ".pdf")
     if not pdf_path.exists():
