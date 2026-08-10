@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Google credentials (sensitive!)
+tokens.json
+service_account.json
+*_service_account.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Build output
+dist/
+build/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache/
+.pytest_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Test files
+*.test.js

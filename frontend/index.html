@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Согласие на обработку персональных данных</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Согласие на медицинские процедуры</h1>
+
+    <form id="consentForm" novalidate>
+      <!-- ФИО -->
+      <div class="form-group">
+        <label for="fio">ФИО <span class="required">*</span></label>
+        <input type="text" id="fio" placeholder="Иванов Иван Иванович" autocomplete="name" />
+        <div id="fio-error" class="error-text"></div>
+      </div>
+
+      <!-- Телефон -->
+      <div class="form-group">
+        <label for="phone">Телефон <span class="required">*</span></label>
+        <input type="text" id="phone" placeholder="+7 (700) 000-00-00" maxlength="18" autocomplete="tel" />
+        <div id="phone-error" class="error-text"></div>
+      </div>
+
+      <!-- ИИН -->
+      <div class="form-group">
+        <label for="iin">ИИН <span class="required">*</span></label>
+        <input type="text" id="iin" placeholder="123456789012" maxlength="12" inputmode="numeric" />
+        <div id="iin-error" class="error-text"></div>
+      </div>
+
+      <!-- Дата рождения -->
+      <div class="form-group">
+        <label for="birthDate">Дата рождения <span class="required">*</span></label>
+        <input type="date" id="birthDate" />
+        <div id="birth-date-error" class="error-text"></div>
+      </div>
+
+      <!-- Пол -->
+      <div class="form-group">
+        <label for="gender">Пол <span class="required">*</span></label>
+        <select id="gender">
+          <option value="">Выберите пол</option>
+          <option value="male">Мужской</option>
+          <option value="female">Женский</option>
+        </select>
+        <div id="gender-error" class="error-text"></div>
+      </div>
+
+      <!-- Аллергия -->
+      <div class="form-group">
+        <label for="allergy">Аллергия / непереносимость <span class="required">*</span></label>
+        <textarea id="allergy" rows="3" placeholder="Укажите аллергии или напишите НЕТ"></textarea>
+        <div id="allergy-error" class="error-text"></div>
+      </div>
+
+      <!-- Ограничения по процедурам -->
+      <div class="form-group">
+        <label for="procedure">Ни при каких обстоятельствах мне не должны выполняться следующие процедуры <span class="required">*</span></label>
+        <textarea id="procedure" rows="3" placeholder="Перечислите процедуры или напишите НЕТ"></textarea>
+        <div id="procedure-error" class="error-text"></div>
+      </div>
+
+      <!-- Подпись -->
+      <div class="form-group">
+        <label>Подпись <span class="required">*</span></label>
+        <p class="hint">Нарисуйте подпись в поле ниже</p>
+        <canvas id="signatureCanvas"></canvas>
+        <div id="signature-error" class="error-text"></div>
+        <div class="signature-actions">
+          <button type="button" id="clearSignature" class="btn-secondary">Очистить</button>
+        </div>
+      </div>
+
+      <!-- Согласие на обработку ПД -->
+      <div class="form-group consent-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="consentCheckbox" />
+          <span>
+            Я даю согласие на обработку моих персональных данных в соответствии
+            с Законом Республики Казахстан «О персональных данных и их защите».
+            <span class="required">*</span>
+          </span>
+        </label>
+        <div id="consent-error" class="error-text"></div>
+      </div>
+
+      <!-- Кнопка отправки -->
+      <button type="submit" class="btn-submit" id="submitBtn" disabled>ЗАВЕРШИТЬ</button>
+    </form>
+
+    <!-- Сообщение об ошибке -->
+    <div id="errorMessage" class="alert alert-error" style="display:none;"></div>
+  </div>
+
+  <!-- Модальное окно загрузки -->
+  <div id="loadingModal" class="modal" style="display:none;">
+    <div class="modal-card">
+      <div class="spinner"></div>
+      <h3>Формируем соглашение…</h3>
+      <p>Обычно это занимает меньше минуты</p>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

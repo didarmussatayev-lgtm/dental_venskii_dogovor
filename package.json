@@ -1,0 +1,12 @@
+{
+  "name": "dogovor-website",
+  "version": "1.0.0",
+  "description": "Medical consent form with Google Drive integration",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -s . -l $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}
