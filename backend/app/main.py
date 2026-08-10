@@ -23,6 +23,94 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+PROCEDURE_TEMPLATES: dict[str, dict[str, str | list[str]]] = {
+    "Хирургия - удаление зуба": {
+        "key": "surgery_tooth_extraction",
+        "filenames": [
+            "СОГЛАСИЕ на хирургию удаления зуба.docx",
+            "СОГЛАСИЕ на хирургию удаление зуба.docx",
+        ],
+    },
+    "Терапия - лечение под седацией (севоран)": {
+        "key": "therapy_sedation",
+        "filenames": [
+            "Согласие на седацию.docx",
+            "согласие на седацию.docx",
+            "согласие на седацию.doc",
+        ],
+    },
+    "Терапия - лечение несовершеннолетних, согласие опекуна": {
+        "key": "therapy_guardian_consent",
+        "filenames": [
+            "Согласие опекуна.docx",
+        ],
+    },
+    "Имплантация - Договор на имплантацию": {
+        "key": "implantation_contract",
+        "filenames": [
+            "Договор на имплантацию.docx",
+            "1. ДОГОВОР на ИМПЛАНТАЦИЮ.docx",
+            "1. ДОГОВОР на ИМПЛАНТАЦИЮ.doc",
+        ],
+    },
+    "Имплантация - Согласие на имплантацию": {
+        "key": "implantation_consent",
+        "filenames": [
+            "Согласие на имплантацию.docx",
+            "1.1. СОГЛАСИЕ на имплантацию.docx",
+        ],
+    },
+    "Имплантация - Дополнительное соглашение к договору имплантации о гарантии": {
+        "key": "implantation_warranty_addendum",
+        "filenames": [
+            "Дополнительное соглашение к договору имплантации о гарантии.docx",
+            "ДОПОЛНИТЕЛЬНОЕ СОГЛАШЕНИЕ к дговору имплантация о гарантии.docx",
+        ],
+    },
+    "Терапия - Согласие на эндодонтическое лечение": {
+        "key": "therapy_endodontic_consent",
+        "filenames": [
+            "Согласие на эндодонтическое лечение.docx",
+            "СОГЛАСИЕ на ЭНДОдонтическое лечение.docx",
+        ],
+    },
+    "Терапия - Согласие на лечение кариеса": {
+        "key": "therapy_caries_consent",
+        "filenames": [
+            "Согласие на лечение кариеса.docx",
+            "СОГЛАСИЕ на терапию (лечение кариеса).docx",
+        ],
+    },
+    "Терапия - Согласие на реставрацию зубов": {
+        "key": "therapy_restoration_consent",
+        "filenames": [
+            "Согласие на реставрацию зубов.docx",
+            "СОГЛАСИЕ на РЕСТАВРАЦИЮ зубов.docx",
+        ],
+    },
+    "Терапия - Согласие на профессиональную чистку": {
+        "key": "therapy_cleaning_consent",
+        "filenames": [
+            "Согласие на профессиональную чистку.docx",
+            "СОГЛАСИЕ на профессиональную ЧИСТКУ.docx",
+        ],
+    },
+    "Терапия - Согласие на повторное эндодонтическое вмешательство": {
+        "key": "therapy_repeat_endodontic_consent",
+        "filenames": [
+            "Согласие на повторное эндодонтическое вмешательство.docx",
+            "СОГЛАСИЕ на повторное эндодонтическое вмешательство.docx",
+        ],
+    },
+    "Терапия - Согласие на глубокий кариес, переходящий в пульпит": {
+        "key": "therapy_deep_caries_consent",
+        "filenames": [
+            "Согласие на глубокий кариес, переходящий в пульпит.docx",
+            "СОГЛАСИЕ на глубокий кариес переход в пульпит.docx",
+        ],
+    },
+}
+
 app = FastAPI(title="Electronic Consent API", version="1.0.0")
 
 app.add_middleware(
@@ -50,70 +138,61 @@ async def create_agreement(body: AgreementRequest):
 
     tmp_dir = Path(tempfile.mkdtemp(prefix="agreement_"))
     try:
-        # 1. Pick templates by business rule
+        # 1. Pick template by selected procedure
         template_dir = Path(settings.template_path).parent
-        template_candidates = {
-            "general": ["soglasie_template_general.docx", "soglasie_template general.docx"],
-            "invasia": ["soglasie_template_invasia.docx", "soglasie_template invasia.docx"],
-            "pregnant": ["soglasie_template_pregnant.docx", "soglasie_template pregnant.docx"],
-        }
-        template_keys = ["general", "invasia"]
-        if body.gender == "female":
-            template_keys.append("pregnant")
+        template_config = PROCEDURE_TEMPLATES.get(body.procedure)
+        if not template_config:
+            raise HTTPException(status_code=400, detail="Unsupported procedure selected.")
 
-        selected_templates: list[tuple[str, Path]] = []
-        for key in template_keys:
-            resolved: Path | None = None
-            for candidate in template_candidates[key]:
-                path = template_dir / candidate
-                if path.exists():
-                    resolved = path
-                    break
-            if not resolved:
-                logger.error("Template not found for key '%s' in %s", key, template_dir)
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Document template not found for '{key}'. Please contact support.",
-                )
-            selected_templates.append((key, resolved))
+        template_key = str(template_config["key"])
+        resolved_template: Path | None = None
+        for candidate in template_config["filenames"]:
+            path = template_dir / str(candidate)
+            if path.exists():
+                resolved_template = path
+                break
+
+        if not resolved_template:
+            logger.error("Template not found for procedure '%s' in %s", body.procedure, template_dir)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Document template not found for '{body.procedure}'. Please contact support.",
+            )
 
         birth_date_text = body.birth_date.strftime("%d.%m.%Y")
         gender_display = "Женский" if body.gender == "female" else "Мужской"
 
         patient_file_base = build_patient_filename_base(body.iin, body.full_name)
 
-        # 2. Generate DOCX and convert each one to PDF
-        docx_paths: list[Path] = []
-        pdf_paths: list[Path] = []
-        for template_key, template_path in selected_templates:
-            output_basename = f"{patient_file_base}_{template_key}"
-            try:
-                docx_path = generate_docx(
-                    template_path=template_path,
-                    full_name=body.full_name,
-                    phone=body.phone,
-                    iin=body.iin,
-                    birth_date=birth_date_text,
-                    gender_display=gender_display,
-                    allergy=body.allergy,
-                    procedure=body.procedure,
-                    signature_base64=body.signature_base64,
-                    agreement_id=agreement_id,
-                    output_basename=output_basename,
-                    output_dir=tmp_dir,
-                )
-            except Exception as exc:
-                logger.exception("DOCX generation failed for template '%s'", template_key)
-                raise HTTPException(status_code=500, detail=f"Document generation failed: {exc}") from exc
+        # 2. Generate DOCX and convert it to PDF
+        output_basename = f"{patient_file_base}_{template_key}"
+        try:
+            docx_path = generate_docx(
+                template_path=resolved_template,
+                full_name=body.full_name,
+                phone=body.phone,
+                iin=body.iin,
+                birth_date=birth_date_text,
+                gender_display=gender_display,
+                allergy=body.allergy,
+                procedure=body.procedure,
+                signature_base64=body.signature_base64,
+                agreement_id=agreement_id,
+                output_basename=output_basename,
+                output_dir=tmp_dir,
+            )
+        except Exception as exc:
+            logger.exception("DOCX generation failed for procedure '%s'", body.procedure)
+            raise HTTPException(status_code=500, detail=f"Document generation failed: {exc}") from exc
 
-            try:
-                pdf_path = convert_to_pdf(docx_path, tmp_dir)
-            except Exception as exc:
-                logger.exception("PDF conversion failed for template '%s'", template_key)
-                raise HTTPException(status_code=500, detail=f"PDF conversion failed: {exc}") from exc
+        try:
+            pdf_path = convert_to_pdf(docx_path, tmp_dir)
+        except Exception as exc:
+            logger.exception("PDF conversion failed for procedure '%s'", body.procedure)
+            raise HTTPException(status_code=500, detail=f"PDF conversion failed: {exc}") from exc
 
-            docx_paths.append(docx_path)
-            pdf_paths.append(pdf_path)
+        docx_paths = [docx_path]
+        pdf_paths = [pdf_path]
 
         # 3. Build ZIP with generated PDF files only
         zip_name = f"{patient_file_base}.zip"

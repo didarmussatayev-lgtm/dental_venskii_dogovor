@@ -109,7 +109,7 @@ function initFormListeners() {
   document.getElementById('birthDate')?.addEventListener('change', () => { validateBirthDate(); updateSubmitState(); });
   document.getElementById('gender')?.addEventListener('change', () => { validateGender(); updateSubmitState(); });
   document.getElementById('allergy')?.addEventListener('input', () => { validateAllergy(); updateSubmitState(); });
-  document.getElementById('procedure')?.addEventListener('input', () => { validateProcedure(); updateSubmitState(); });
+  document.getElementById('procedure')?.addEventListener('change', () => { validateProcedure(); updateSubmitState(); });
   document.getElementById('consentCheckbox')?.addEventListener('change', () => {
     setError('consent-error', '');
     updateSubmitState();
@@ -185,7 +185,7 @@ function validateAllergy() {
 
 function validateProcedure() {
   const val = document.getElementById('procedure')?.value.trim() ?? '';
-  if (!val) { setFieldError('procedure', 'procedure-error', 'Заполните поле или напишите НЕТ'); return false; }
+  if (!val) { setFieldError('procedure', 'procedure-error', 'Выберите процедуру'); return false; }
   setFieldError('procedure', 'procedure-error', '');
   return true;
 }
