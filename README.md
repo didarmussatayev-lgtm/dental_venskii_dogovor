@@ -62,7 +62,7 @@ backend/             # FastAPI (Docker)
 
 ```bash
 cp backend/.env.example backend/.env
-# Отредактируйте backend/.env — укажите Drive folder ID и service account
+# Отредактируйте backend/.env — укажите Drive folder ID и OAuth refresh-token credentials
 ```
 
 ### 3. Запустить бэкенд
@@ -106,20 +106,19 @@ const BACKEND_URL = 'http://localhost:8000';
 
 1. В [Google Cloud Console](https://console.cloud.google.com/) создайте проект.
 2. Включите **Google Drive API**.
-3. Создайте **Service Account** → скачайте JSON-ключ.
-4. На Google Drive создайте папку «Согласия» и поделитесь ею с email сервис-аккаунта (права Editor).
+3. Создайте **OAuth Client ID** и получите `client_id` / `client_secret`.
+4. Получите `refresh_token` для аккаунта, в чей Google Drive нужно загружать файлы.
 5. Скопируйте ID папки из URL: `https://drive.google.com/drive/folders/<FOLDER_ID>`
 6. Заполните в `backend/.env`:
 
 ```env
 GOOGLE_DRIVE_FOLDER_ID=<FOLDER_ID>
-# Вариант A — JSON строкой:
-GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
-# Вариант B — путь к файлу:
-GOOGLE_SERVICE_ACCOUNT_FILE=service_account.json
+GOOGLE_OAUTH_CLIENT_ID=<YOUR_GOOGLE_OAUTH_CLIENT_ID>
+GOOGLE_OAUTH_CLIENT_SECRET=<YOUR_GOOGLE_OAUTH_CLIENT_SECRET>
+GOOGLE_OAUTH_REFRESH_TOKEN=<YOUR_GOOGLE_OAUTH_REFRESH_TOKEN>
 ```
 
-> **Важно:** не коммитьте `service_account.json` и `.env` в репозиторий — они в `.gitignore`.
+> **Важно:** не коммитьте `.env` в репозиторий — он в `.gitignore`.
 
 ---
 
@@ -184,6 +183,7 @@ curl https://your-app.up.railway.app/health
 | `LOG_LEVEL` | Уровень логирования | `INFO` |
 | `CORS_ORIGINS` | Разрешённые origins (через запятую) | `https://user.github.io` |
 | `GOOGLE_DRIVE_FOLDER_ID` | ID папки на Drive | `1BxiM...` |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON сервис-аккаунта строкой | `{"type":"service_account",...}` |
-| `GOOGLE_SERVICE_ACCOUNT_FILE` | Путь к JSON файлу сервис-аккаунта | `service_account.json` |
+| `GOOGLE_OAUTH_CLIENT_ID` | OAuth Client ID | `123456.apps.googleusercontent.com` |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | OAuth Client Secret | `GOCSPX-...` |
+| `GOOGLE_OAUTH_REFRESH_TOKEN` | OAuth Refresh Token для доступа к Drive | `1//0g...` |
 | `TEMPLATE_PATH` | Путь к любому шаблону внутри `app/templates` (используется для определения директории шаблонов) | `app/templates/soglasie_template_general.docx` |

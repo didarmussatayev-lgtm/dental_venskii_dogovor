@@ -5,7 +5,8 @@
 Скопируйте и заполните файл переменных окружения:
 ```bash
 cp backend/.env.example backend/.env
-# Укажите GOOGLE_DRIVE_FOLDER_ID и GOOGLE_SERVICE_ACCOUNT_JSON
+# Укажите GOOGLE_DRIVE_FOLDER_ID, GOOGLE_OAUTH_CLIENT_ID,
+# GOOGLE_OAUTH_CLIENT_SECRET и GOOGLE_OAUTH_REFRESH_TOKEN
 ```
 
 Запустите бэкенд:
