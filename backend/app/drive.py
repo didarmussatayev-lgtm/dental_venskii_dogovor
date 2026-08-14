@@ -73,7 +73,7 @@ def upload_documents(
     folder_id: str,
     iin: str,
     full_name: str,
-    oauth_credentials_info: dict | None = None,
+    oauth_credentials_info: dict,
 ) -> dict:
     """
     Upload generated documents to Google Drive.
