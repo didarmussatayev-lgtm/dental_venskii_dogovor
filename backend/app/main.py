@@ -205,19 +205,20 @@ async def create_agreement(body: AgreementRequest):
         # 4. Upload DOCX+PDF files to Google Drive (best-effort — don't fail on Drive error)
         drive_error: str | None = None
         if settings.google_drive_folder_id:
-            try:
-                upload_documents(
-                    file_paths=[*docx_paths, *pdf_paths],
-                    folder_id=settings.google_drive_folder_id,
-                    iin=body.iin,
-                    full_name=body.full_name,
-                    service_account_info=settings.service_account_info,
-                    service_account_file=settings.google_service_account_file,
-                    oauth_credentials_info=settings.oauth_credentials_info,
-                )
-            except Exception as exc:
-                drive_error = str(exc)
-                logger.error("Drive upload failed for %s: %s", patient_file_base, exc)
+            if settings.oauth_credentials_info:
+                try:
+                    upload_documents(
+                        file_paths=[*docx_paths, *pdf_paths],
+                        folder_id=settings.google_drive_folder_id,
+                        iin=body.iin,
+                        full_name=body.full_name,
+                        oauth_credentials_info=settings.oauth_credentials_info,
+                    )
+                except Exception as exc:
+                    drive_error = str(exc)
+                    logger.error("Drive upload failed for %s: %s", patient_file_base, exc)
+            else:
+                logger.warning("Google Drive OAuth credentials not set — skipping Drive upload")
         else:
             logger.warning("GOOGLE_DRIVE_FOLDER_ID not set — skipping Drive upload")
 

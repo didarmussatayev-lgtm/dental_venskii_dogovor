@@ -4,13 +4,12 @@ import logging
 import re
 import unicodedata
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 _DRIVE_AVAILABLE = False
 try:
-    from google.oauth2 import service_account
+    from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials as OAuthCredentials
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
@@ -22,44 +21,33 @@ SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 
 
-def _build_service(
-    service_account_info: Optional[dict],
-    service_account_file: Optional[str],
-    oauth_credentials_info: Optional[dict] = None,
-):
+def _build_service(oauth_credentials_info: dict):
     """
-    Build and return a Google Drive service object.
-
-    Priority:
-      1. OAuth user-delegated credentials (works with personal Gmail Drive quota)
-      2. Service-account credentials (only works with Shared Drives / Workspace)
+    Build and return a Google Drive service object using OAuth refresh-token credentials.
     """
     if not _DRIVE_AVAILABLE:
         raise RuntimeError("Google API client library is not installed")
 
-    if oauth_credentials_info:
-        creds = OAuthCredentials(
-            token=None,
-            refresh_token=oauth_credentials_info["refresh_token"],
-            client_id=oauth_credentials_info["client_id"],
-            client_secret=oauth_credentials_info["client_secret"],
-            token_uri=TOKEN_URI,
-            scopes=SCOPES,
-        )
-    elif service_account_info:
-        creds = service_account.Credentials.from_service_account_info(
-            service_account_info, scopes=SCOPES
-        )
-    elif service_account_file and Path(service_account_file).exists():
-        creds = service_account.Credentials.from_service_account_file(
-            service_account_file, scopes=SCOPES
-        )
-    else:
+    if not oauth_credentials_info:
         raise RuntimeError(
             "No Google Drive credentials found. Set GOOGLE_OAUTH_CLIENT_ID / "
-            "GOOGLE_OAUTH_CLIENT_SECRET / GOOGLE_OAUTH_REFRESH_TOKEN, or "
-            "GOOGLE_SERVICE_ACCOUNT_JSON / GOOGLE_SERVICE_ACCOUNT_FILE."
+            "GOOGLE_OAUTH_CLIENT_SECRET / GOOGLE_OAUTH_REFRESH_TOKEN."
         )
+
+    creds = OAuthCredentials(
+        token=None,
+        refresh_token=oauth_credentials_info["refresh_token"],
+        client_id=oauth_credentials_info["client_id"],
+        client_secret=oauth_credentials_info["client_secret"],
+        token_uri=TOKEN_URI,
+        scopes=SCOPES,
+    )
+    try:
+        creds.refresh(Request())
+    except Exception:
+        logger.exception("Failed to refresh Google Drive OAuth access token")
+        raise
+    logger.info("Google Drive OAuth access token refreshed successfully")
     return build("drive", "v3", credentials=creds)
 
 
@@ -85,16 +73,14 @@ def upload_documents(
     folder_id: str,
     iin: str,
     full_name: str,
-    service_account_info: Optional[dict] = None,
-    service_account_file: Optional[str] = None,
-    oauth_credentials_info: Optional[dict] = None,
+    oauth_credentials_info: dict,
 ) -> dict:
     """
     Upload generated documents to Google Drive.
     Returns a dict with uploaded file IDs by filename.
     Raises RuntimeError on failure.
     """
-    service = _build_service(service_account_info, service_account_file, oauth_credentials_info)
+    service = _build_service(oauth_credentials_info)
     patient_base = build_patient_filename_base(iin, full_name)
     uploaded_ids: dict[str, str] = {}
     for file_path in file_paths:
