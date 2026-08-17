@@ -30,8 +30,9 @@ function initModal() {
   const modal = document.getElementById('formModal');
 
   startBtn?.addEventListener('click', () => {
+    resetWizardState();
     modal.style.display = 'flex';
-    showStep(currentStep);
+    showStep(1);
     resizeCanvas();
   });
 
@@ -78,6 +79,21 @@ function initListeners() {
   document.getElementById('consentCheckbox')?.addEventListener('change', () => setError('consent-error', ''));
 
   document.getElementById('consentForm')?.addEventListener('submit', handleSubmit);
+}
+
+function resetWizardState() {
+  currentStep = 1;
+  visibleContacts = 1;
+  document.getElementById('consentForm')?.reset();
+  clearSignature();
+  document.getElementById('errorMessage').style.display = 'none';
+  document.getElementById('errorMessage').textContent = '';
+  document.getElementById('addContactBtn').style.display = 'inline-block';
+  document.querySelectorAll('.contact-row[data-contact="2"], .contact-row[data-contact="3"]').forEach((row) => {
+    row.style.display = 'none';
+  });
+  toggleChildFields();
+  toggleDynamicStep3Fields();
 }
 
 function showStep(step) {
