@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     google_oauth_refresh_token: str = ""
 
     # Template
-    template_path: str = "backend/app/templates/soglasie_template_general.docx"
+    template_path: str = "app/templates/soglasie_template_general.docx"
 
     @property
     def cors_origins_list(self) -> List[str]:
