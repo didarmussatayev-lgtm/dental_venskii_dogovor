@@ -4,7 +4,7 @@ import base64
 import logging
 import re
 import subprocess
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -138,11 +138,25 @@ def generate_docx(
     full_name: str,
     phone: str,
     iin: str,
-    birth_date: str,
-    gender_display: str,
     allergy: str,
     procedure: str,
     signature_base64: str,
+    degree_of_kinship: str,
+    guardian_relationship: str,
+    name_surname_of_child: str,
+    name_surname_patient: str,
+    date_of_birth: date | None,
+    id_number: str,
+    id_authority: str,
+    id_date_of_issue: date | None,
+    adress: str,
+    degree_of_kinship_mother_father_guardin: str,
+    contact_name_surname_1: str,
+    contact_phones_1: str,
+    contact_name_surname_2: str,
+    contact_phones_2: str,
+    contact_name_surname_3: str,
+    contact_phones_3: str,
     agreement_id: str,
     output_basename: str,
     output_dir: str | Path,
@@ -160,15 +174,39 @@ def generate_docx(
     sig_tmp = Path(output_dir) / f"{agreement_id}_sig.png"
     sig_tmp.write_bytes(sig_bytes)
 
+    date_of_birth_text = date_of_birth.strftime("%d.%m.%Y") if date_of_birth else ""
+    id_date_of_issue_text = id_date_of_issue.strftime("%d.%m.%Y") if id_date_of_issue else ""
+    now = datetime.now()
+
     context = {
         "full_name": full_name,
+        "name_surname": full_name,
         "phone": phone,
         "iin": iin,
-        "birth_date": birth_date,
-        "gender": gender_display,
         "allergy": allergy,
         "procedure": procedure,
+        "degree_of_kinship": degree_of_kinship,
+        "guardian_relationship": guardian_relationship,
+        "name_surname_of_child": name_surname_of_child,
+        "name_surname_patient": name_surname_patient,
+        "date_of_birth": date_of_birth_text,
+        "birth_date": date_of_birth_text,
+        "gender": "",
+        "id_number": id_number,
+        "id_authority": id_authority,
+        "id_date_of_issue": id_date_of_issue_text,
+        "adress": adress,
+        "degree_of_kinship_mother_father_guardin": degree_of_kinship_mother_father_guardin,
+        "contact_name_surname_1": contact_name_surname_1,
+        "contact_phones_1": contact_phones_1,
+        "contact_name_surname_2": contact_name_surname_2,
+        "contact_phones_2": contact_phones_2,
+        "contact_name_surname_3": contact_name_surname_3,
+        "contact_phones_3": contact_phones_3,
+        "contact_name_surname": contact_name_surname_1,
+        "contact_phones": contact_phones_1,
         "date": date.today().strftime("%d.%m.%Y"),
+        "full_date": now.strftime("%d.%m.%Y %H часов %M минут"),
         "agreement_id": agreement_id,
         "signature": InlineImage(tpl, str(sig_tmp), width=Mm(50)),
     }

@@ -9,108 +9,238 @@
 <body>
   <div class="container">
     <h1>Согласие на оказание стоматологических процедур в Vienna Dental Clinic</h1>
+    <button type="button" id="startBtn" class="btn-submit">НАЧАТЬ</button>
 
-    <form id="consentForm" novalidate>
-      <!-- ФИО -->
-      <div class="form-group">
-        <label for="fio">ФИО <span class="required">*</span></label>
-        <input type="text" id="fio" placeholder="Ахметов Серік Арманович" autocomplete="name" />
-        <div id="fio-error" class="error-text"></div>
-      </div>
-
-      <!-- Телефон -->
-      <div class="form-group">
-        <label for="phone">Телефон <span class="required">*</span></label>
-        <input type="text" id="phone" placeholder="+7 (700) 000-00-00" maxlength="18" autocomplete="tel" />
-        <div id="phone-error" class="error-text"></div>
-      </div>
-
-      <!-- ИИН -->
-      <div class="form-group">
-        <label for="iin">ИИН <span class="required">*</span></label>
-        <input type="text" id="iin" placeholder="123456789012" maxlength="12" inputmode="numeric" />
-        <div id="iin-error" class="error-text"></div>
-      </div>
-
-      <!-- Дата рождения -->
-      <div class="form-group">
-        <label for="birthDate">Дата рождения <span class="required">*</span></label>
-        <input type="date" id="birthDate" />
-        <div id="birth-date-error" class="error-text"></div>
-      </div>
-
-      <!-- Пол -->
-      <div class="form-group">
-        <label for="gender">Пол <span class="required">*</span></label>
-        <select id="gender">
-          <option value="">Выберите пол</option>
-          <option value="male">Мужской</option>
-          <option value="female">Женский</option>
-        </select>
-        <div id="gender-error" class="error-text"></div>
-      </div>
-
-      <!-- Аллергия -->
-      <div class="form-group">
-        <label for="allergy">Аллергия / непереносимость <span class="required">*</span></label>
-        <textarea id="allergy" rows="3" placeholder="Укажите аллергии или напишите НЕТ"></textarea>
-        <div id="allergy-error" class="error-text"></div>
-      </div>
-
-      <!-- Процедура -->
-      <div class="form-group">
-        <label for="procedure">На какую процедуру пришел клиент <span class="required">*</span></label>
-        <select id="procedure">
-          <option value="">Выберите процедуру</option>
-          <option value="Хирургия - удаление зуба">Хирургия - удаление зуба</option>
-          <option value="Терапия - лечение под седацией (севоран)">Терапия - лечение под седацией (севоран)</option>
-          <option value="Терапия - лечение несовершеннолетних, согласие опекуна">Терапия - лечение несовершеннолетних, согласие опекуна</option>
-          <option value="Имплантация - Договор на имплантацию">Имплантация - Договор на имплантацию</option>
-          <option value="Имплантация - Согласие на имплантацию">Имплантация - Согласие на имплантацию</option>
-          <option value="Имплантация - Дополнительное соглашение к договору имплантации о гарантии">Имплантация - Дополнительное соглашение к договору имплантации о гарантии</option>
-          <option value="Терапия - Согласие на эндодонтическое лечение">Терапия - Согласие на эндодонтическое лечение</option>
-          <option value="Терапия - Согласие на лечение кариеса">Терапия - Согласие на лечение кариеса</option>
-          <option value="Терапия - Согласие на реставрацию зубов">Терапия - Согласие на реставрацию зубов</option>
-          <option value="Терапия - Согласие на профессиональную чистку">Терапия - Согласие на профессиональную чистку</option>
-          <option value="Терапия - Согласие на повторное эндодонтическое вмешательство">Терапия - Согласие на повторное эндодонтическое вмешательство</option>
-          <option value="Терапия - Согласие на глубокий кариес, переходящий в пульпит">Терапия - Согласие на глубокий кариес, переходящий в пульпит</option>
-        </select>
-        <div id="procedure-error" class="error-text"></div>
-      </div>
-
-      <!-- Подпись -->
-      <div class="form-group">
-        <label>Подпись <span class="required">*</span></label>
-        <p class="hint">Нарисуйте подпись в поле ниже</p>
-        <canvas id="signatureCanvas"></canvas>
-        <div id="signature-error" class="error-text"></div>
-        <div class="signature-actions">
-          <button type="button" id="clearSignature" class="btn-secondary">Очистить</button>
-        </div>
-      </div>
-
-      <!-- Согласие на обработку ПД -->
-      <div class="form-group consent-group">
-        <label class="checkbox-label">
-          <input type="checkbox" id="consentCheckbox" />
-          <span>
-            Я даю согласие на обработку моих персональных данных в соответствии
-            с Законом Республики Казахстан «О персональных данных и их защите».
-            <span class="required">*</span>
-          </span>
-        </label>
-        <div id="consent-error" class="error-text"></div>
-      </div>
-
-      <!-- Кнопка отправки -->
-      <button type="submit" class="btn-submit" id="submitBtn" disabled>ЗАВЕРШИТЬ</button>
-    </form>
-
-    <!-- Сообщение об ошибке -->
-    <div id="errorMessage" class="alert alert-error" style="display:none;"></div>
   </div>
 
-  <!-- Модальное окно загрузки -->
+  <div id="formModal" class="modal" style="display:none;">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2 id="stepTitle">Шаг 1: Выбор типа согласия</h2>
+        <button type="button" id="closeModal" class="close-btn" aria-label="Закрыть">&times;</button>
+      </div>
+
+      <form id="consentForm" novalidate>
+        <div id="step1" class="form-step">
+          <div class="form-group">
+            <label>На кого оформляется согласие? <span class="required">*</span></label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="degreeOfKinship" value="на себя" />
+                <span>на себя</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="degreeOfKinship" value="на моего ребенка" />
+                <span>на моего ребенка</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="degreeOfKinship" value="на лицо, чьим законным представителем я являюсь" />
+                <span>на лицо, чьим законным представителем я являюсь</span>
+              </label>
+            </div>
+            <div id="degree-of-kinship-error" class="error-text"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="fio">ФИО <span class="required">*</span></label>
+            <input type="text" id="fio" placeholder="Ахметов Серік Арманович" autocomplete="name" />
+            <div id="fio-error" class="error-text"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Телефон <span class="required">*</span></label>
+            <input type="text" id="phone" class="phone-input" placeholder="+7 (700) 000-00-00" maxlength="18" autocomplete="tel" />
+            <div id="phone-error" class="error-text"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="iin">ИИН <span class="required">*</span></label>
+            <input type="text" id="iin" placeholder="123456789012" maxlength="12" inputmode="numeric" />
+            <div id="iin-error" class="error-text"></div>
+          </div>
+
+          <div id="childFields" style="display:none;">
+            <div class="form-group">
+              <label for="childFio">ФИО ребенка/подопечного <span class="required">*</span></label>
+              <input type="text" id="childFio" placeholder="ФИО ребенка" autocomplete="name" />
+              <div id="child-fio-error" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="childBirthDate">Дата рождения ребенка/подопечного <span class="required">*</span></label>
+              <input type="date" id="childBirthDate" />
+              <div id="child-birth-date-error" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="guardianRelationship">Степень родства опекуна <span class="required">*</span></label>
+              <select id="guardianRelationship">
+                <option value="">Выберите степень родства</option>
+                <option value="Родитель">Родитель</option>
+                <option value="Бабушка">Бабушка</option>
+                <option value="Дедушка">Дедушка</option>
+                <option value="Опекун">Опекун</option>
+                <option value="Другое">Другое</option>
+              </select>
+              <div id="guardian-relationship-error" class="error-text"></div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="nextStep1" class="btn-submit">ДАЛЕЕ</button>
+          </div>
+        </div>
+
+        <div id="step2" class="form-step" style="display:none;">
+          <div class="form-group">
+            <label for="procedure">Выберите услугу <span class="required">*</span></label>
+            <select id="procedure">
+              <option value="">Выберите процедуру</option>
+              <option value="Хирургия - удаление зуба">Хирургия - удаление зуба</option>
+              <option value="Терапия - лечение под седацией (севоран)">Терапия - лечение под седацией (севоран)</option>
+              <option value="Терапия - лечение (взрослые и дети), согласие представителя">Терапия - лечение (взрослые и дети), согласие представителя</option>
+              <option value="Имплантация - Договор на имплантацию">Имплантация - Договор на имплантацию</option>
+              <option value="Имплантация - Согласие на имплантацию">Имплантация - Согласие на имплантацию</option>
+              <option value="Имплантация - Дополнительное соглашение к договору имплантации о гарантии">Имплантация - Дополнительное соглашение к договору имплантации о гарантии</option>
+              <option value="Терапия - Согласие на эндодонтическое лечение">Терапия - Согласие на эндодонтическое лечение</option>
+              <option value="Терапия - Согласие на лечение кариеса">Терапия - Согласие на лечение кариеса</option>
+              <option value="Терапия - Согласие на реставрацию зубов">Терапия - Согласие на реставрацию зубов</option>
+              <option value="Терапия - Согласие на профессиональную чистку">Терапия - Согласие на профессиональную чистку</option>
+              <option value="Терапия - Согласие на повторное эндодонтическое вмешательство">Терапия - Согласие на повторное эндодонтическое вмешательство</option>
+              <option value="Терапия - Согласие на глубокий кариес, переходящий в пульпит">Терапия - Согласие на глубокий кариес, переходящий в пульпит</option>
+            </select>
+            <div id="procedure-error" class="error-text"></div>
+          </div>
+
+          <div class="form-actions dual">
+            <button type="button" id="backStep2" class="btn-secondary">НАЗАД</button>
+            <button type="button" id="nextStep2" class="btn-submit">ДАЛЕЕ</button>
+          </div>
+        </div>
+
+        <div id="step3" class="form-step" style="display:none;">
+          <div class="form-group">
+            <label for="allergy">Аллергия / непереносимость <span class="required">*</span></label>
+            <textarea id="allergy" rows="3" placeholder="Укажите аллергии или напишите НЕТ"></textarea>
+            <div id="allergy-error" class="error-text"></div>
+          </div>
+
+          <div id="implantFields" style="display:none;">
+            <div class="form-group">
+              <label for="idNumber">ID номер <span class="required">*</span></label>
+              <input type="text" id="idNumber" placeholder="123456789" maxlength="9" inputmode="numeric" />
+              <div id="id-number-error" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="idAuthority">Орган, выдавший ID <span class="required">*</span></label>
+              <input type="text" id="idAuthority" placeholder="Орган выдачи" />
+              <div id="id-authority-error" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="idIssueDate">Дата выдачи ID <span class="required">*</span></label>
+              <input type="date" id="idIssueDate" />
+              <div id="id-issue-date-error" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="address">Адрес проживания <span class="required">*</span></label>
+              <input type="text" id="address" placeholder="Адрес проживания" />
+              <div id="address-error" class="error-text"></div>
+            </div>
+          </div>
+
+          <div id="sedationChildFields" style="display:none;">
+            <div class="form-group">
+              <label for="sedationRelation">Степень родства (для седации) <span class="required">*</span></label>
+              <select id="sedationRelation">
+                <option value="">Выберите вариант</option>
+                <option value="Мать">Мать</option>
+                <option value="Отец">Отец</option>
+                <option value="Опекун">Опекун</option>
+              </select>
+              <div id="sedation-relation-error" class="error-text"></div>
+            </div>
+
+            <div class="contacts-block">
+              <p class="contacts-title">Контакты (минимум 1, максимум 3)</p>
+
+              <div class="contact-row" data-contact="1">
+                <div class="form-group">
+                  <label for="contactName1">Контакт 1: ФИО <span class="required">*</span></label>
+                  <input type="text" id="contactName1" placeholder="ФИО контактного лица" />
+                  <div id="contact-name-1-error" class="error-text"></div>
+                </div>
+                <div class="form-group">
+                  <label for="contactPhone1">Контакт 1: Телефон <span class="required">*</span></label>
+                  <input type="text" id="contactPhone1" class="phone-input" placeholder="+7 (700) 000-00-00" maxlength="18" />
+                  <div id="contact-phone-1-error" class="error-text"></div>
+                </div>
+              </div>
+
+              <div class="contact-row" data-contact="2" style="display:none;">
+                <div class="form-group">
+                  <label for="contactName2">Контакт 2: ФИО</label>
+                  <input type="text" id="contactName2" placeholder="ФИО контактного лица" />
+                  <div id="contact-name-2-error" class="error-text"></div>
+                </div>
+                <div class="form-group">
+                  <label for="contactPhone2">Контакт 2: Телефон</label>
+                  <input type="text" id="contactPhone2" class="phone-input" placeholder="+7 (700) 000-00-00" maxlength="18" />
+                  <div id="contact-phone-2-error" class="error-text"></div>
+                </div>
+              </div>
+
+              <div class="contact-row" data-contact="3" style="display:none;">
+                <div class="form-group">
+                  <label for="contactName3">Контакт 3: ФИО</label>
+                  <input type="text" id="contactName3" placeholder="ФИО контактного лица" />
+                  <div id="contact-name-3-error" class="error-text"></div>
+                </div>
+                <div class="form-group">
+                  <label for="contactPhone3">Контакт 3: Телефон</label>
+                  <input type="text" id="contactPhone3" class="phone-input" placeholder="+7 (700) 000-00-00" maxlength="18" />
+                  <div id="contact-phone-3-error" class="error-text"></div>
+                </div>
+              </div>
+
+              <button type="button" id="addContactBtn" class="btn-secondary add-contact-btn">Добавить контакт</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Подпись <span class="required">*</span></label>
+            <p class="hint">Нарисуйте подпись в поле ниже</p>
+            <canvas id="signatureCanvas"></canvas>
+            <div id="signature-error" class="error-text"></div>
+            <div class="signature-actions">
+              <button type="button" id="clearSignature" class="btn-secondary">Очистить</button>
+            </div>
+          </div>
+
+          <div class="form-group consent-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="consentCheckbox" />
+              <span>
+                Я даю согласие на обработку моих персональных данных в соответствии
+                с Законом Республики Казахстан «О персональных данных и их защите».
+                <span class="required">*</span>
+              </span>
+            </label>
+            <div id="consent-error" class="error-text"></div>
+          </div>
+
+          <div class="form-actions dual">
+            <button type="button" id="backStep3" class="btn-secondary">НАЗАД</button>
+            <button type="submit" id="finishBtn" class="btn-submit">ЗАВЕРШИТЬ</button>
+          </div>
+        </div>
+      </form>
+      <div id="errorMessage" class="alert alert-error" style="display:none;"></div>
+    </div>
+  </div>
+
   <div id="loadingModal" class="modal" style="display:none;">
     <div class="modal-card">
       <div class="spinner"></div>

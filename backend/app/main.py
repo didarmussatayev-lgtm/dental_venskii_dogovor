@@ -45,6 +45,12 @@ PROCEDURE_TEMPLATES: dict[str, dict[str, str | list[str]]] = {
             "Согласие опекуна.docx",
         ],
     },
+    "Терапия - лечение (взрослые и дети), согласие представителя": {
+        "key": "therapy_guardian_consent",
+        "filenames": [
+            "Согласие опекуна.docx",
+        ],
+    },
     "Имплантация - Договор на имплантацию": {
         "key": "implantation_contract",
         "filenames": [
@@ -159,9 +165,6 @@ async def create_agreement(body: AgreementRequest):
                 detail=f"Document template not found for '{body.procedure}'. Please contact support.",
             )
 
-        birth_date_text = body.birth_date.strftime("%d.%m.%Y")
-        gender_display = "Женский" if body.gender == "female" else "Мужской"
-
         patient_file_base = build_patient_filename_base(body.iin, body.full_name)
 
         # 2. Generate DOCX and convert it to PDF
@@ -172,11 +175,25 @@ async def create_agreement(body: AgreementRequest):
                 full_name=body.full_name,
                 phone=body.phone,
                 iin=body.iin,
-                birth_date=birth_date_text,
-                gender_display=gender_display,
                 allergy=body.allergy,
                 procedure=body.procedure,
                 signature_base64=body.signature_base64,
+                degree_of_kinship=body.degree_of_kinship,
+                guardian_relationship=body.guardian_relationship,
+                name_surname_of_child=body.name_surname_of_child,
+                name_surname_patient=body.name_surname_patient,
+                date_of_birth=body.date_of_birth,
+                id_number=body.id_number,
+                id_authority=body.id_authority,
+                id_date_of_issue=body.id_date_of_issue,
+                adress=body.adress,
+                degree_of_kinship_mother_father_guardin=body.degree_of_kinship_mother_father_guardin,
+                contact_name_surname_1=body.contact_name_surname_1,
+                contact_phones_1=body.contact_phones_1,
+                contact_name_surname_2=body.contact_name_surname_2,
+                contact_phones_2=body.contact_phones_2,
+                contact_name_surname_3=body.contact_name_surname_3,
+                contact_phones_3=body.contact_phones_3,
                 agreement_id=agreement_id,
                 output_basename=output_basename,
                 output_dir=tmp_dir,
