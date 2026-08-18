@@ -128,10 +128,9 @@ function toggleChildFields() {
 
 function toggleDynamicStep3Fields() {
   const procedure = document.getElementById('procedure')?.value ?? '';
-  const childFlow = isChildFlow();
-
+  
   document.getElementById('implantFields').style.display = IMPLANT_PROCEDURES.has(procedure) ? 'block' : 'none';
-  document.getElementById('sedationChildFields').style.display = (procedure === SEDATION_PROCEDURE && childFlow) ? 'block' : 'none';
+  document.getElementById('sedationChildFields').style.display = (procedure === SEDATION_PROCEDURE) ? 'block' : 'none';
 }
 
 function addContact() {
