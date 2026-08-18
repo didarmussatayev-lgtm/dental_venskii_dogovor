@@ -145,7 +145,7 @@ async def create_agreement(body: AgreementRequest):
     tmp_dir = Path(tempfile.mkdtemp(prefix="agreement_"))
     try:
         # 1. Pick template by selected procedure
-        template_dir = Path(settings.template_path).parent
+        template_dir = Path(__file__).parent / "templates"
         template_config = PROCEDURE_TEMPLATES.get(body.procedure)
         if not template_config:
             raise HTTPException(status_code=400, detail="Unsupported procedure selected.")
