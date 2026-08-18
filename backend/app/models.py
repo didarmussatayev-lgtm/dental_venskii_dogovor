@@ -123,13 +123,17 @@ class AgreementRequest(BaseModel):
         self.contact_name_surname_3 = self.contact_name_surname_3.strip()
         self.contact_phones_3 = self.contact_phones_3.strip()
 
-        if self.procedure == SEDATION_PROCEDURE and child_flow:
-            if self.degree_of_kinship_mother_father_guardin not in {"Мать", "Отец", "Опекун"}:
-                raise ValueError(
-                    "degree_of_kinship_mother_father_guardin must be one of: Мать, Отец, Опекун"
-                )
+        # For SEDATION_PROCEDURE, always require contacts (whether "на себя" or child flow)
+        if self.procedure == SEDATION_PROCEDURE:
+            if child_flow:
+                # When child flow: require degree_of_kinship_mother_father_guardin
+                if self.degree_of_kinship_mother_father_guardin not in {"Мать", "Отец", "Опекун"}:
+                    raise ValueError(
+                        "degree_of_kinship_mother_father_guardin must be one of: Мать, Отец, Опекун"
+                    )
+            # Always require at least one contact
             if not self.contact_name_surname_1:
-                raise ValueError("contact_name_surname_1 is required for sedation child/representative flow")
+                raise ValueError("contact_name_surname_1 is required for sedation procedure")
             if not re.fullmatch(r"77\d{9}", re.sub(r"\D", "", self.contact_phones_1)):
                 raise ValueError("contact_phones_1 must match +7 (7XX) XXX-XX-XX format")
 
@@ -143,6 +147,7 @@ class AgreementRequest(BaseModel):
                     if not re.fullmatch(r"77\d{9}", re.sub(r"\D", "", phone)):
                         raise ValueError(f"contact_phones_{idx} must match +7 (7XX) XXX-XX-XX format")
         else:
+            # For non-sedation procedures, clear contacts
             self.degree_of_kinship_mother_father_guardin = ""
             self.contact_name_surname_1 = ""
             self.contact_phones_1 = ""
