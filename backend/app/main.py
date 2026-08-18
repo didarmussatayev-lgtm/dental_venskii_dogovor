@@ -42,12 +42,6 @@ PROCEDURE_TEMPLATES: dict[str, dict[str, str | list[str]]] = {
             "согласие на седацию.doc",
         ],
     },
-    "Терапия - СОГЛАСИЕ на местную инъекционную АНЕСТЕЗИЮ": {
-        "key": "therapy_guardian_consent",
-        "filenames": [
-            "СОГЛАСИЕ на местную инъекционную АНЕСТЕЗИЮ.docx",
-        ],
-    },
     "Имплантация - Договор на имплантацию": {
         "key": "implantation_contract",
         "filenames": [
