@@ -150,6 +150,7 @@ async def create_agreement(body: AgreementRequest):
             raise HTTPException(status_code=400, detail="Unsupported procedure selected.")
 
         template_key = str(template_config["key"])
+        logger.info("Files actually in template_dir: %s", [f.name for f in template_dir.iterdir()])
         resolved_template: Path | None = None
         for candidate in template_config["filenames"]:
             path = template_dir / str(candidate)
