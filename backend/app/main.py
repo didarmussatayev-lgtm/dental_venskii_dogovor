@@ -4,7 +4,6 @@ import logging
 import shutil
 import tempfile
 import uuid
-import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -27,79 +26,92 @@ PROCEDURE_TEMPLATES: dict[str, dict[str, str | list[str]]] = {
     "Хирургия - удаление зуба": {
         "key": "surgery_tooth_extraction",
         "filenames": [
+            "СОГЛАСИЕ на хирургию удаления зуба.docx",
             "СОГЛАСИЕ на хирургию удаление зуба.docx",
         ],
     },
     "Терапия - лечение под седацией (севоран)": {
         "key": "therapy_sedation",
         "filenames": [
+            "Согласие на седацию.docx",
+            "согласие на седацию.docx",
             "согласие на седацию.doc",
         ],
     },
     "Терапия - лечение несовершеннолетних, согласие опекуна": {
         "key": "therapy_guardian_consent",
         "filenames": [
-            "согласие на седацию.doc",
+            "Согласие опекуна.docx",
+        ],
+    },
+    "Терапия - лечение (взрослые и дети), согласие представителя": {
+        "key": "therapy_guardian_consent",
+        "filenames": [
+            "Согласие опекуна.docx",
         ],
     },
     "Имплантация - Договор на имплантацию": {
         "key": "implantation_contract",
         "filenames": [
+            "Договор на имплантацию.docx",
+            "1. ДОГОВОР на ИМПЛАНТАЦИЮ.docx",
             "1. ДОГОВОР на ИМПЛАНТАЦИЮ.doc",
         ],
     },
     "Имплантация - Согласие на имплантацию": {
         "key": "implantation_consent",
         "filenames": [
+            "Согласие на имплантацию.docx",
             "1.1. СОГЛАСИЕ на имплантацию.docx",
         ],
     },
     "Имплантация - Дополнительное соглашение к договору имплантации о гарантии": {
         "key": "implantation_warranty_addendum",
         "filenames": [
+            "Дополнительное соглашение к договору имплантации о гарантии.docx",
             "ДОПОЛНИТЕЛЬНОЕ СОГЛАШЕНИЕ к дговору имплантация о гарантии.docx",
         ],
     },
     "Терапия - Согласие на эндодонтическое лечение": {
         "key": "therapy_endodontic_consent",
         "filenames": [
+            "Согласие на эндодонтическое лечение.docx",
             "СОГЛАСИЕ на ЭНДОдонтическое лечение.docx",
         ],
     },
     "Терапия - Согласие на лечение кариеса": {
         "key": "therapy_caries_consent",
         "filenames": [
+            "Согласие на лечение кариеса.docx",
             "СОГЛАСИЕ на терапию (лечение кариеса).docx",
         ],
     },
     "Терапия - Согласие на реставрацию зубов": {
         "key": "therapy_restoration_consent",
         "filenames": [
+            "Согласие на реставрацию зубов.docx",
             "СОГЛАСИЕ на РЕСТАВРАЦИЮ зубов.docx",
         ],
     },
     "Терапия - Согласие на профессиональную чистку": {
         "key": "therapy_cleaning_consent",
         "filenames": [
+            "Согласие на профессиональную чистку.docx",
             "СОГЛАСИЕ на профессиональную ЧИСТКУ.docx",
         ],
     },
     "Терапия - Согласие на повторное эндодонтическое вмешательство": {
         "key": "therapy_repeat_endodontic_consent",
         "filenames": [
+            "Согласие на повторное эндодонтическое вмешательство.docx",
             "СОГЛАСИЕ на повторное эндодонтическое вмешательство.docx",
         ],
     },
     "Терапия - Согласие на глубокий кариес, переходящий в пульпит": {
         "key": "therapy_deep_caries_consent",
         "filenames": [
+            "Согласие на глубокий кариес, переходящий в пульпит.docx",
             "СОГЛАСИЕ на глубокий кариес переход в пульпит.docx",
-        ],
-    },
-    "Терапия - Согласие на местную инъекционную анестезию": {
-        "key": "therapy_local_anesthesia_consent",
-        "filenames": [
-            "СОГЛАСИЕ на местную инъекционную АНЕСТЕЗИЮ.docx",
         ],
     },
 }
@@ -124,7 +136,7 @@ def health() -> dict:
 async def create_agreement(body: AgreementRequest):
     """
     Accept form data, generate DOCX+PDF set, upload DOCX+PDF to Google Drive,
-    and return PDF-only ZIP to the client as a downloadable file.
+    and return PDF to the client as a downloadable file.
     """
     agreement_id = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
     logger.info("Processing agreement %s for %s", agreement_id, body.full_name)
@@ -132,7 +144,7 @@ async def create_agreement(body: AgreementRequest):
     tmp_dir = Path(tempfile.mkdtemp(prefix="agreement_"))
     try:
         # 1. Pick template by selected procedure
-        template_dir = Path(__file__).resolve().parent / "templates"
+        template_dir = Path(settings.template_path).parent
         template_config = PROCEDURE_TEMPLATES.get(body.procedure)
         if not template_config:
             raise HTTPException(status_code=400, detail="Unsupported procedure selected.")
@@ -198,15 +210,7 @@ async def create_agreement(body: AgreementRequest):
         docx_paths = [docx_path]
         pdf_paths = [pdf_path]
 
-        # 3. Build ZIP with generated PDF files only
-        zip_name = "Vienna_Dental_Clinic.zip"
-        zip_path = tmp_dir / zip_name
-        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for generated_file in pdf_paths:
-                archive.write(generated_file, arcname=generated_file.name)
-        logger.info("ZIP generated with %d PDF files: %s", len(pdf_paths), zip_path)
-
-        # 4. Upload DOCX+PDF files to Google Drive (best-effort — don't fail on Drive error)
+        # 3. Upload DOCX+PDF files to Google Drive (best-effort — don't fail on Drive error)
         drive_error: str | None = None
         if settings.google_drive_folder_id:
             if settings.oauth_credentials_info:
@@ -226,15 +230,15 @@ async def create_agreement(body: AgreementRequest):
         else:
             logger.warning("GOOGLE_DRIVE_FOLDER_ID not set — skipping Drive upload")
 
-        # 5. Return ZIP to client
+        # 4. Return PDF to client
         headers: dict[str, str] = {}
         if drive_error:
             headers["X-Drive-Error"] = drive_error[:200]
 
         return FileResponse(
-            path=str(zip_path),
-            media_type="application/zip",
-            filename=zip_name,
+            path=str(pdf_path),
+            media_type="application/pdf",
+            filename="Vienna Dental.pdf",
             headers=headers,
             background=_cleanup_background(tmp_dir),
         )
