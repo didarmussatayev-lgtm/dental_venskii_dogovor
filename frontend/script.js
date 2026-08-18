@@ -298,7 +298,7 @@ function validateStep3() {
   }
 
   let sedationOk = true;
-  if (procedure === SEDATION_PROCEDURE && isChildFlow()) {
+  if (procedure === SEDATION_PROCEDURE ) {
     const sedationRelation = document.getElementById('sedationRelation')?.value ?? '';
     if (!sedationRelation) {
       setFieldError('sedationRelation', 'sedation-relation-error', 'Выберите степень родства');
