@@ -88,8 +88,9 @@ class AgreementRequest(BaseModel):
             if not self.name_surname_patient:
                 self.name_surname_patient = self.name_surname_of_child
         else:
+            # When "на себя" — patient is the consent giver (full_name)
             self.name_surname_of_child = ""
-            self.name_surname_patient = ""
+            self.name_surname_patient = self.full_name
             self.date_of_birth = None
             self.guardian_relationship = ""
 
