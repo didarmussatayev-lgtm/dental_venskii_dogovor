@@ -495,21 +495,21 @@ async function handleSubmit(e) {
     id_authority: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('idAuthority').value.trim() : '',
     id_date_of_issue: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('idIssueDate').value : null,
     adress: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('address').value.trim() : '',
-    degree_of_kinship_mother_father_guardin: (procedure === SEDATION_PROCEDURE && childFlow)
+    degree_of_kinship_mother_father_guardin: (procedure === SEDATION_PROCEDURE)
       ? document.getElementById('sedationRelation').value
       : '',
-    contact_name_surname_1: (procedure === SEDATION_PROCEDURE && childFlow) ? document.getElementById('contactName1').value.trim() : '',
-    contact_phones_1: (procedure === SEDATION_PROCEDURE && childFlow) ? document.getElementById('contactPhone1').value.trim() : '',
-    contact_name_surname_2: (procedure === SEDATION_PROCEDURE && childFlow && visibleContacts >= 2)
+    contact_name_surname_1: (procedure === SEDATION_PROCEDURE ) ? document.getElementById('contactName1').value.trim() : '',
+    contact_phones_1: (procedure === SEDATION_PROCEDURE ) ? document.getElementById('contactPhone1').value.trim() : '',
+    contact_name_surname_2: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 2)
       ? document.getElementById('contactName2').value.trim()
       : '',
-    contact_phones_2: (procedure === SEDATION_PROCEDURE && childFlow && visibleContacts >= 2)
+    contact_phones_2: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 2)
       ? document.getElementById('contactPhone2').value.trim()
       : '',
-    contact_name_surname_3: (procedure === SEDATION_PROCEDURE && childFlow && visibleContacts >= 3)
+    contact_name_surname_3: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 3)
       ? document.getElementById('contactName3').value.trim()
       : '',
-    contact_phones_3: (procedure === SEDATION_PROCEDURE && childFlow && visibleContacts >= 3)
+    contact_phones_3: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 3)
       ? document.getElementById('contactPhone3').value.trim()
       : '',
   };
