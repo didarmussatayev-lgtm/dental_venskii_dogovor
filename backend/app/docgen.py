@@ -160,6 +160,7 @@ def generate_docx(
     agreement_id: str,
     output_basename: str,
     output_dir: str | Path,
+    representative_full_name: str = "",
 ) -> Path:
     """Fill the DOCX template and return the path to the generated file."""
     normalized_template_path, suspicious_placeholders = _prepare_template_for_render(
@@ -205,6 +206,7 @@ def generate_docx(
         "contact_phones_3": contact_phones_3,
         "contact_name_surname": contact_name_surname_1,
         "contact_phones": contact_phones_1,
+        "representative_full_name": representative_full_name,
         "date": date.today().strftime("%d.%m.%Y"),
         "full_date": now.strftime("%d.%m.%Y %H часов %M минут"),
         "agreement_id": agreement_id,
