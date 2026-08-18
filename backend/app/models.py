@@ -88,7 +88,6 @@ class AgreementRequest(BaseModel):
             if not self.name_surname_patient:
                 self.name_surname_patient = self.name_surname_of_child
         else:
-            # When "на себя" — patient is the consent giver (full_name)
             self.name_surname_of_child = ""
             self.name_surname_patient = self.full_name
             self.date_of_birth = None
@@ -124,29 +123,24 @@ class AgreementRequest(BaseModel):
         self.contact_phones_3 = self.contact_phones_3.strip()
 
         if self.procedure == SEDATION_PROCEDURE:
-            if child_flow:
-                # When child flow: require degree_of_kinship_mother_father_guardin
-                if self.degree_of_kinship_mother_father_guardin not in {"Мать", "Отец", "Опекун"}:
-                    raise ValueError(
-                        "degree_of_kinship_mother_father_guardin must be one of: Мать, Отец, Опекун"
-                    )
-                # Require at least one contact — only for child flow
-                if not self.contact_name_surname_1:
-                    raise ValueError("contact_name_surname_1 is required for sedation procedure")
-                if not re.fullmatch(r"77\d{9}", re.sub(r"\D", "", self.contact_phones_1)):
-                    raise ValueError("contact_phones_1 must match +7 (7XX) XXX-XX-XX format")
-                for name, phone, idx in (
-                    (self.contact_name_surname_2, self.contact_phones_2, 2),
-                    (self.contact_name_surname_3, self.contact_phones_3, 3),
-                ):
-                    if name or phone:
-                        if not name:
-                            raise ValueError(f"contact_name_surname_{idx} is required when contact_phones_{idx} is set")
-                        if not re.fullmatch(r"77\d{9}", re.sub(r"\D", "", phone)):
-                            raise ValueError(f"contact_phones_{idx} must match +7 (7XX) XXX-XX-XX format")
-            # else: "на себя" — контакты не требуются, ничего не проверяем
+            if self.degree_of_kinship_mother_father_guardin not in {"Мать", "Отец", "Опекун"}:
+                raise ValueError(
+                    "degree_of_kinship_mother_father_guardin must be one of: Мать, Отец, Опекун"
+                )
+            if not self.contact_name_surname_1:
+                raise ValueError("contact_name_surname_1 is required for sedation procedure")
+            if not re.fullmatch(r"77\d{9}", re.sub(r"\D", "", self.contact_phones_1)):
+                raise ValueError("contact_phones_1 must match +7 (7XX) XXX-XX-XX format")
+            for name, phone, idx in (
+                (self.contact_name_surname_2, self.contact_phones_2, 2),
+                (self.contact_name_surname_3, self.contact_phones_3, 3),
+            ):
+                if name or phone:
+                    if not name:
+                        raise ValueError(f"contact_name_surname_{idx} is required when contact_phones_{idx} is set")
+                    if not re.fullmatch(r"77\d{9}", re.sub(r"\D", "", phone)):
+                        raise ValueError(f"contact_phones_{idx} must match +7 (7XX) XXX-XX-XX format")
         else:
-            # For non-sedation procedures, clear contacts
             self.degree_of_kinship_mother_father_guardin = ""
             self.contact_name_surname_1 = ""
             self.contact_phones_1 = ""
