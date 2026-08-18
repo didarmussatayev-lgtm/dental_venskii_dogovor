@@ -21,6 +21,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
 logger = logging.getLogger(__name__)
+logger.info("=== DEPLOY MARKER v3: template_dir via __file__ ===")
 
 PROCEDURE_TEMPLATES: dict[str, dict[str, str | list[str]]] = {
     "Хирургия - удаление зуба": {
