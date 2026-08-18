@@ -168,6 +168,14 @@ async def create_agreement(body: AgreementRequest):
 
         patient_file_base = build_patient_filename_base(body.iin, body.full_name)
 
+        # Determine representative_full_name based on degree_of_kinship
+        child_degree_values = {"на моего ребенка", "на лицо, чьим законным представителем я являюсь"}
+        representative_full_name = ""
+        if body.degree_of_kinship in child_degree_values:
+            # When it's for a child, the representative is the consent giver (full_name)
+            representative_full_name = body.full_name
+        # When it's "на себя", representative_full_name stays empty
+
         # 2. Generate DOCX and convert it to PDF
         output_basename = f"{patient_file_base}_{template_key}"
         try:
@@ -198,6 +206,7 @@ async def create_agreement(body: AgreementRequest):
                 agreement_id=agreement_id,
                 output_basename=output_basename,
                 output_dir=tmp_dir,
+                representative_full_name=representative_full_name,
             )
         except Exception as exc:
             logger.exception("DOCX generation failed for procedure '%s'", body.procedure)
