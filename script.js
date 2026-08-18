@@ -264,7 +264,7 @@ async function handleSubmit(e) {
     a.href = url;
     const disposition = response.headers.get('Content-Disposition') ?? '';
     const match = disposition.match(/filename[^;=\n]*=(['"]?)([^'";\n]+)\1/);
-    a.download = match ? match[2] : 'soglasie.pdf';
+    a.download = match ? match[2] : 'Vienna_Dental.pdf';
     document.body.appendChild(a);
     a.click();
     a.remove();
