@@ -131,6 +131,14 @@ function toggleDynamicStep3Fields() {
   
   document.getElementById('implantFields').style.display = IMPLANT_PROCEDURES.has(procedure) ? 'block' : 'none';
   document.getElementById('sedationChildFields').style.display = (procedure === SEDATION_PROCEDURE) ? 'block' : 'none';
+  const relationGroup = document.getElementById('sedationRelation')?.closest('.form-group');
+  if (relationGroup) {
+    relationGroup.style.display = (procedure === SEDATION_PROCEDURE && childFlow) ? 'block' : 'none';
+  }
+  if (!childFlow) {
+    const relationInput = document.getElementById('sedationRelation');
+    if (relationInput) relationInput.value = ''; // автоматически очищаем поле
+  }
 }
 
 function addContact() {
