@@ -123,10 +123,14 @@ class AgreementRequest(BaseModel):
         self.contact_phones_3 = self.contact_phones_3.strip()
 
         if self.procedure == SEDATION_PROCEDURE:
+            if child_flow:
             if self.degree_of_kinship_mother_father_guardin not in {"Мать", "Отец", "Опекун"}:
                 raise ValueError(
                     "degree_of_kinship_mother_father_guardin must be one of: Мать, Отец, Опекун"
                 )
+            else:
+                self.degree_of_kinship_mother_father_guardin = ""
+                
             if not self.contact_name_surname_1:
                 raise ValueError("contact_name_surname_1 is required for sedation procedure")
             if not re.fullmatch(r"77\d{9}", re.sub(r"\D", "", self.contact_phones_1)):
