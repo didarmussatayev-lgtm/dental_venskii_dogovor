@@ -136,6 +136,16 @@ async def whatsapp_webhook(request: Request):
     payload = await request.json()
     await handle_incoming_whatsapp(payload)
     return {"status": "ok"}
+    
+#УДАЛИТЬ КОГДА НАСТОЯЩИЙ
+@app.get("/api/v1/debug/config-check")
+def config_check():
+    return {
+        "cliniccards_token_set": bool(settings.cliniccards_token),
+        "evolution_api_url_set": bool(settings.evolution_api_url),
+        "evolution_api_key_set": bool(settings.evolution_api_key),
+        "evolution_instance_set": bool(settings.evolution_instance),
+    }
 
 @app.get("/health")
 def health() -> dict:
