@@ -306,13 +306,16 @@ function validateStep3() {
 
   let sedationOk = true;
   if (procedure === SEDATION_PROCEDURE ) {
+    if (isChildFlow()) {
     const sedationRelation = document.getElementById('sedationRelation')?.value ?? '';
     if (!sedationRelation) {
       setFieldError('sedationRelation', 'sedation-relation-error', 'Выберите степень родства');
       sedationOk = false;
     } else {
       setFieldError('sedationRelation', 'sedation-relation-error', '');
-    }
+  } else {
+    setFieldError('sedationRelation', 'sedation-relation-error', '');
+  }
 
     const contactName1 = document.getElementById('contactName1')?.value.trim() ?? '';
     if (!contactName1) {
