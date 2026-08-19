@@ -15,6 +15,7 @@ from .config import settings
 from .docgen import convert_to_pdf, generate_docx
 from .drive import build_patient_filename_base, upload_documents
 from .models import AgreementRequest
+from .reminders import handle_incoming_whatsapp, start_scheduler
 
 logging.basicConfig(
     level=settings.log_level.upper(),
@@ -126,7 +127,15 @@ app.add_middleware(
     allow_methods=["POST", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
+@app.on_event("startup")
+async def on_startup():
+    start_scheduler()
 
+@app.post("/api/v1/whatsapp-webhook")
+async def whatsapp_webhook(request: Request):
+    payload = await request.json()
+    await handle_incoming_whatsapp(payload)
+    return {"status": "ok"}
 
 @app.get("/health")
 def health() -> dict:
