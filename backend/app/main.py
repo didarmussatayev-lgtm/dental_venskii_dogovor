@@ -16,7 +16,8 @@ from .docgen import convert_to_pdf, generate_docx
 from .drive import build_patient_filename_base, upload_documents
 from .models import AgreementRequest
 from .reminders import handle_incoming_whatsapp, start_scheduler
-
+from .reminders import send_daily_reminders 
+#удалить строку выше
 logging.basicConfig(
     level=settings.log_level.upper(),
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
@@ -137,7 +138,7 @@ async def whatsapp_webhook(request: Request):
     await handle_incoming_whatsapp(payload)
     return {"status": "ok"}
     
-#УДАЛИТЬ КОГДА НАСТОЯЩИЙ
+#УДАЛИТЬ КОГДА НАСТОЯЩИЙ начало
 @app.get("/api/v1/debug/config-check")
 def config_check():
     return {
@@ -146,6 +147,11 @@ def config_check():
         "evolution_api_key_set": bool(settings.evolution_api_key),
         "evolution_instance_set": bool(settings.evolution_instance),
     }
+@app.post("/api/v1/debug/trigger-reminders")
+async def trigger_reminders():
+    await send_daily_reminders()
+    return {"status": "triggered"}
+#УДАЛИТЬ КОГДА НАСТОЯЩИЙ конец
 
 @app.get("/health")
 def health() -> dict:
