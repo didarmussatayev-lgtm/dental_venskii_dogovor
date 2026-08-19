@@ -51,6 +51,16 @@ class Settings(BaseSettings):
                 "refresh_token": self.google_oauth_refresh_token.strip(),
             }
         return None
+    
+    # ClinicCards CRM
+    cliniccards_token: str = ""
+    cliniccards_base_url: str = "https://cliniccards.com/api"
 
+    # Evolution API (WhatsApp)
+    evolution_api_url: str = ""       # например https://your-evolution.up.railway.app
+    evolution_api_key: str = ""
+    evolution_instance: str = ""
+
+    clinic_timezone: str = "Asia/Almaty"  # Астана = UTC+5, тот же пояс
 
 settings = Settings()
