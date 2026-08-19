@@ -124,9 +124,9 @@ class AgreementRequest(BaseModel):
 
         if self.procedure == SEDATION_PROCEDURE:
             if child_flow:
-            if self.degree_of_kinship_mother_father_guardin not in {"Мать", "Отец", "Опекун"}:
-                raise ValueError(
-                    "degree_of_kinship_mother_father_guardin must be one of: Мать, Отец, Опекун"
+                if self.degree_of_kinship_mother_father_guardin not in {"Мать", "Отец", "Опекун"}:
+                    raise ValueError(
+                        "degree_of_kinship_mother_father_guardin must be one of: Мать, Отец, Опекун"
                 )
             else:
                 self.degree_of_kinship_mother_father_guardin = ""
