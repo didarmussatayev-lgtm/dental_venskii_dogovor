@@ -4,10 +4,11 @@ from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-test_mode: bool = True
-test_phone_number: str = ""
+
 
 class Settings(BaseSettings):
+    test_mode: bool = True
+    test_phone_number: str = ""
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
