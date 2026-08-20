@@ -4,6 +4,8 @@ from typing import List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+test_mode: bool = True
+test_phone_number: str = ""
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
