@@ -257,7 +257,7 @@ async def handle_incoming_whatsapp(payload: dict) -> None:
         await _send_whatsapp(phone, "Спасибо! Ваша запись подтверждена. Ждём вас ✅")
         _pending_confirmations.pop(phone, None)
     elif digit == "2":
-        await _update_visit_status(pending, "NOT_CONFIRMED")
+        await _update_visit_status(pending, "MOVED")
         await _send_whatsapp(phone, "Хорошо, свяжитесь с нами по телефону клиники, чтобы перенести запись.")
         _pending_confirmations.pop(phone, None)
     elif digit == "3":
