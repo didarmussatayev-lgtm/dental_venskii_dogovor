@@ -222,6 +222,48 @@ async def _update_visit_status(pending: dict, status: str) -> None:
         logger.exception("Failed to update visit %s to status %s", pending["visit_id"], status)
 
 
+# Keyword patterns for recognizing intent even when the patient doesn't reply
+# with a bare digit — e.g. "1 подтверждаю", "подтверждаю запись", "да, приду".
+# Includes both Russian and Kazakh variations.
+_CONFIRM_KEYWORDS = (
+    "подтвержда", "подтвержаю", "подтверждаю", "confirm", "да", "ок", "окей", "хорошо, приду",
+    "приду", "буду",
+    # Kazakh
+    "растаймын", "келісемін", "иә", "келемін", "қуаттаймын", "макул",
+)
+_MOVE_KEYWORDS = (
+    "перенес", "перенос", "перенести", "перенесите", "reschedule", "другое время", "другой день",
+    # Kazakh
+    "ауыстыр", "басқа уақыт", "кейінге қалдыр",
+)
+_CANCEL_KEYWORDS = (
+    "отказ", "откажусь", "отказываюсь", "отмен", "cancel", "не приду", "не смогу", "не получится",
+    # Kazakh
+    "бас тарт", "келмеймін", "болмайды",
+)
+
+
+def _classify_reply(text: str) -> str | None:
+    """Return '1', '2', or '3' based on the reply, or None if unrecognized.
+
+    Checks a leading digit first (fast path for the exact format we asked for),
+    then falls back to keyword matching so replies like 'подтверждаю' or
+    'хочу перенести' without the digit are still understood.
+    """
+    stripped = text.strip()
+    if stripped[:1] in {"1", "2", "3"}:
+        return stripped[0]
+
+    lowered = stripped.lower()
+    if any(kw in lowered for kw in _CANCEL_KEYWORDS):
+        return "3"
+    if any(kw in lowered for kw in _MOVE_KEYWORDS):
+        return "2"
+    if any(kw in lowered for kw in _CONFIRM_KEYWORDS):
+        return "1"
+    return None
+
+
 async def handle_incoming_whatsapp(payload: dict) -> None:
     """Process an incoming Evolution API webhook payload (messages.upsert event)."""
     event = str(payload.get("event", "")).lower()
@@ -250,7 +292,7 @@ async def handle_incoming_whatsapp(payload: dict) -> None:
         logger.info("Received '%s' from %s but no pending confirmation found", text, phone)
         return
 
-    digit = text[0]
+    digit = _classify_reply(text)
 
     if digit == "1":
         await _update_visit_status(pending, "CONFIRMED")
@@ -265,4 +307,18 @@ async def handle_incoming_whatsapp(payload: dict) -> None:
         await _send_whatsapp(phone, "Ваша запись отменена. Будем рады видеть вас в другой раз!")
         _pending_confirmations.pop(phone, None)
     else:
-        await _send_whatsapp(phone, "Пожалуйста, отправьте цифру 1, 2 или 3.")
+        # Unrecognized reply — flag the visit for staff to call the patient manually,
+        # instead of silently doing nothing. Keep `pending` active (don't pop it) so
+        # that if the patient later sends a clear 1/2/3, it still resolves correctly.
+        original_note = pending.get("note", "")
+        flagged_note = (
+            f"{original_note} | [WhatsApp] Не распознан ответ пациента: '{text}'. Нужен звонок."
+        ).strip(" |")
+        await _update_visit_status({**pending, "note": flagged_note}, "NOT_CONFIRMED")
+        await _send_whatsapp(
+            phone,
+            "Извините, не поняла ваш ответ 🙏 Пожалуйста, отправьте цифру:\n"
+            "1 - подтверждаю\n"
+            "2 - хочу перенести\n"
+            "3 - хочу отказаться",
+        )
