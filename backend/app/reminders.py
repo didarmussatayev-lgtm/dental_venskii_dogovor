@@ -199,9 +199,9 @@ async def _process_single_visit(visit: dict, tomorrow: date, date_str: str) -> N
 
 def start_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler(timezone=settings.clinic_timezone)
-    scheduler.add_job(send_daily_reminders, CronTrigger(hour=9, minute=0))
+    scheduler.add_job(send_daily_reminders, CronTrigger(hour=12, minute=0))
     scheduler.start()
-    logger.info("Reminder scheduler started — daily at 09:00 %s", settings.clinic_timezone)
+    logger.info("Reminder scheduler started — daily at 17:00 %s", settings.clinic_timezone)
     return scheduler
 
 
