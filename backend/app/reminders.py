@@ -257,19 +257,33 @@ def _classify_reply(text: str) -> str | None:
     Checks a leading digit first (fast path for the exact format we asked for),
     then falls back to keyword matching so replies like 'подтверждаю' or
     'хочу перенести' without the digit are still understood.
+
+    Keywords are matched at the START of a word only (not as a substring
+    buried inside an unrelated word) — e.g. "ок" must not match inside "пока".
+    Keywords are still allowed to be word STEMS (e.g. "отмен" matching
+    "отменить"), so only the left boundary is checked.
     """
     stripped = text.strip()
     if stripped[:1] in {"1", "2", "3"}:
         return stripped[0]
 
     lowered = stripped.lower()
-    if any(kw in lowered for kw in _CANCEL_KEYWORDS):
+    if _contains_keyword(lowered, _CANCEL_KEYWORDS):
         return "3"
-    if any(kw in lowered for kw in _MOVE_KEYWORDS):
+    if _contains_keyword(lowered, _MOVE_KEYWORDS):
         return "2"
-    if any(kw in lowered for kw in _CONFIRM_KEYWORDS):
+    if _contains_keyword(lowered, _CONFIRM_KEYWORDS):
         return "1"
     return None
+
+
+def _contains_keyword(lowered: str, keywords: tuple[str, ...]) -> bool:
+    """True if any keyword occurs starting at a word boundary (not mid-word)."""
+    for kw in keywords:
+        pattern = r"(?<![а-яёa-z0-9])" + re.escape(kw)
+        if re.search(pattern, lowered):
+            return True
+    return False
 
 
 async def handle_incoming_whatsapp(payload: dict) -> None:
