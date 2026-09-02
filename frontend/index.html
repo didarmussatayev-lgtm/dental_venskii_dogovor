@@ -97,17 +97,16 @@
             <select id="procedure">
               <option value="">Выберите процедуру</option>
               <option value="Хирургия - удаление зуба">Хирургия - удаление зуба</option>
-              <option value="Терапия - лечение под седацией (севоран)">Терапия - лечение под седацией (севоран)</option>
-              <option value="Терапия - лечение (взрослые и дети), согласие представителя">Терапия - СОГЛАСИЕ на местную инъекционную АНЕСТЕЗИЮ</option>
+              <option value="Ортопедия - Договор на ортопедию">Ортопедия - Договор на ортопедию</option>
               <option value="Имплантация - Договор на имплантацию">Имплантация - Договор на имплантацию</option>
-              <option value="Имплантация - Согласие на имплантацию">Имплантация - Согласие на имплантацию</option>
-              <option value="Имплантация - Дополнительное соглашение к договору имплантации о гарантии">Имплантация - Дополнительное соглашение к договору имплантации о гарантии</option>
+              <option value="Имплантация - Дополнительное соглашение на имплантацию">Имплантация - Дополнительное соглашение на имплантацию</option>
+              <option value="Терапия - Согласие на местную инъекционную анестезию">Терапия - Согласие на местную инъекционную анестезию</option>
               <option value="Терапия - Согласие на эндодонтическое лечение">Терапия - Согласие на эндодонтическое лечение</option>
               <option value="Терапия - Согласие на лечение кариеса">Терапия - Согласие на лечение кариеса</option>
               <option value="Терапия - Согласие на реставрацию зубов">Терапия - Согласие на реставрацию зубов</option>
               <option value="Терапия - Согласие на профессиональную чистку">Терапия - Согласие на профессиональную чистку</option>
               <option value="Терапия - Согласие на повторное эндодонтическое вмешательство">Терапия - Согласие на повторное эндодонтическое вмешательство</option>
-              <option value="Терапия - Согласие на глубокий кариес, переходящий в пульпит">Терапия - Согласие на глубокий кариес, переходящий в пульпит</option>
+              <option value="Терапия - Согласие на глубокий кариес, переход в пульпит">Терапия - Согласие на глубокий кариес, переход в пульпит</option>
             </select>
             <div id="procedure-error" class="error-text"></div>
           </div>
@@ -148,64 +147,6 @@
               <label for="address">Адрес проживания <span class="required">*</span></label>
               <input type="text" id="address" placeholder="Адрес проживания" />
               <div id="address-error" class="error-text"></div>
-            </div>
-          </div>
-
-          <div id="sedationChildFields" style="display:none;">
-            <div class="form-group">
-              <label for="sedationRelation">Степень родства (для седации) <span class="required">*</span></label>
-              <select id="sedationRelation">
-                <option value="">Выберите вариант</option>
-                <option value="Мать">Мать</option>
-                <option value="Отец">Отец</option>
-                <option value="Опекун">Опекун</option>
-              </select>
-              <div id="sedation-relation-error" class="error-text"></div>
-            </div>
-
-            <div class="contacts-block">
-              <p class="contacts-title">Контакты (минимум 1, максимум 3)</p>
-
-              <div class="contact-row" data-contact="1">
-                <div class="form-group">
-                  <label for="contactName1">Контакт 1: ФИО <span class="required">*</span></label>
-                  <input type="text" id="contactName1" placeholder="ФИО контактного лица" />
-                  <div id="contact-name-1-error" class="error-text"></div>
-                </div>
-                <div class="form-group">
-                  <label for="contactPhone1">Контакт 1: Телефон <span class="required">*</span></label>
-                  <input type="text" id="contactPhone1" class="phone-input" placeholder="+7 (700) 000-00-00" maxlength="18" />
-                  <div id="contact-phone-1-error" class="error-text"></div>
-                </div>
-              </div>
-
-              <div class="contact-row" data-contact="2" style="display:none;">
-                <div class="form-group">
-                  <label for="contactName2">Контакт 2: ФИО</label>
-                  <input type="text" id="contactName2" placeholder="ФИО контактного лица" />
-                  <div id="contact-name-2-error" class="error-text"></div>
-                </div>
-                <div class="form-group">
-                  <label for="contactPhone2">Контакт 2: Телефон</label>
-                  <input type="text" id="contactPhone2" class="phone-input" placeholder="+7 (700) 000-00-00" maxlength="18" />
-                  <div id="contact-phone-2-error" class="error-text"></div>
-                </div>
-              </div>
-
-              <div class="contact-row" data-contact="3" style="display:none;">
-                <div class="form-group">
-                  <label for="contactName3">Контакт 3: ФИО</label>
-                  <input type="text" id="contactName3" placeholder="ФИО контактного лица" />
-                  <div id="contact-name-3-error" class="error-text"></div>
-                </div>
-                <div class="form-group">
-                  <label for="contactPhone3">Контакт 3: Телефон</label>
-                  <input type="text" id="contactPhone3" class="phone-input" placeholder="+7 (700) 000-00-00" maxlength="18" />
-                  <div id="contact-phone-3-error" class="error-text"></div>
-                </div>
-              </div>
-
-              <button type="button" id="addContactBtn" class="btn-secondary add-contact-btn">Добавить контакт</button>
             </div>
           </div>
 

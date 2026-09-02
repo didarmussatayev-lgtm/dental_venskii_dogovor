@@ -1,9 +1,8 @@
 // BACKEND_URL is defined in config.js — change it to your deployed FastAPI URL
 
-const SEDATION_PROCEDURE = 'Терапия - лечение под седацией (севоран)';
 const IMPLANT_PROCEDURES = new Set([
   'Имплантация - Договор на имплантацию',
-  'Имплантация - Дополнительное соглашение к договору имплантации о гарантии',
+  'Имплантация - Дополнительное соглашение на имплантацию',
 ]);
 const CHILD_DEGREE_VALUES = new Set([
   'на моего ребенка',
@@ -11,7 +10,6 @@ const CHILD_DEGREE_VALUES = new Set([
 ]);
 
 let currentStep = 1;
-let visibleContacts = 1;
 let canvas;
 let ctx;
 let isDrawing = false;
@@ -75,7 +73,6 @@ function initListeners() {
     input.addEventListener('input', handlePhoneInput);
   });
 
-  document.getElementById('addContactBtn')?.addEventListener('click', addContact);
   document.getElementById('consentCheckbox')?.addEventListener('change', () => setError('consent-error', ''));
 
   document.getElementById('consentForm')?.addEventListener('submit', handleSubmit);
@@ -83,15 +80,10 @@ function initListeners() {
 
 function resetWizardState() {
   currentStep = 1;
-  visibleContacts = 1;
   document.getElementById('consentForm')?.reset();
   clearSignature();
   document.getElementById('errorMessage').style.display = 'none';
   document.getElementById('errorMessage').textContent = '';
-  document.getElementById('addContactBtn').style.display = 'inline-block';
-  document.querySelectorAll('.contact-row[data-contact="2"], .contact-row[data-contact="3"]').forEach((row) => {
-    row.style.display = 'none';
-  });
   toggleChildFields();
   toggleDynamicStep3Fields();
 }
@@ -128,28 +120,8 @@ function toggleChildFields() {
 
 function toggleDynamicStep3Fields() {
   const procedure = document.getElementById('procedure')?.value ?? '';
-  const childFlow = isChildFlow();
-  
-  document.getElementById('implantFields').style.display = IMPLANT_PROCEDURES.has(procedure) ? 'block' : 'none';
-  document.getElementById('sedationChildFields').style.display = (procedure === SEDATION_PROCEDURE) ? 'block' : 'none';
-  const relationGroup = document.getElementById('sedationRelation')?.closest('.form-group');
-  if (relationGroup) {
-    relationGroup.style.display = (procedure === SEDATION_PROCEDURE && childFlow) ? 'block' : 'none';
-  }
-  if (!childFlow) {
-    const relationInput = document.getElementById('sedationRelation');
-    if (relationInput) relationInput.value = ''; // автоматически очищаем поле
-  }
-}
 
-function addContact() {
-  if (visibleContacts >= 3) return;
-  visibleContacts += 1;
-  const row = document.querySelector(`.contact-row[data-contact="${visibleContacts}"]`);
-  if (row) row.style.display = 'grid';
-  if (visibleContacts >= 3) {
-    document.getElementById('addContactBtn').style.display = 'none';
-  }
+  document.getElementById('implantFields').style.display = IMPLANT_PROCEDURES.has(procedure) ? 'block' : 'none';
 }
 
 function setError(id, message) {
@@ -305,62 +277,12 @@ function validateStep3() {
     setFieldError('address', 'address-error', '');
   }
 
-  let sedationOk = true;
-  if (procedure === SEDATION_PROCEDURE ) {
-    if (isChildFlow()) {
-    const sedationRelation = document.getElementById('sedationRelation')?.value ?? '';
-    if (!sedationRelation) {
-      setFieldError('sedationRelation', 'sedation-relation-error', 'Выберите степень родства');
-      sedationOk = false;
-    } else {
-      setFieldError('sedationRelation', 'sedation-relation-error', '');
-    }  
-  } else {
-    setFieldError('sedationRelation', 'sedation-relation-error', '');
-  }
-
-    const contactName1 = document.getElementById('contactName1')?.value.trim() ?? '';
-    if (!contactName1) {
-      setFieldError('contactName1', 'contact-name-1-error', 'Введите ФИО контактного лица');
-      sedationOk = false;
-    } else {
-      setFieldError('contactName1', 'contact-name-1-error', '');
-    }
-    if (!validatePhoneById('contactPhone1', 'contact-phone-1-error')) sedationOk = false;
-
-    for (let i = 2; i <= visibleContacts; i += 1) {
-      const nameId = `contactName${i}`;
-      const phoneId = `contactPhone${i}`;
-      const nameErrorId = `contact-name-${i}-error`;
-      const phoneErrorId = `contact-phone-${i}-error`;
-      const name = document.getElementById(nameId)?.value.trim() ?? '';
-      const phone = document.getElementById(phoneId)?.value.trim() ?? '';
-      const filled = !!(name || phone);
-
-      if (filled && !name) {
-        setFieldError(nameId, nameErrorId, 'Введите ФИО контактного лица');
-        sedationOk = false;
-      } else {
-        setFieldError(nameId, nameErrorId, '');
-      }
-
-      if (filled && !validatePhoneById(phoneId, phoneErrorId, true)) sedationOk = false;
-      if (!filled) setFieldError(phoneId, phoneErrorId, '');
-    }
-  } else {
-    setFieldError('sedationRelation', 'sedation-relation-error', '');
-    for (let i = 1; i <= 3; i += 1) {
-      setFieldError(`contactName${i}`, `contact-name-${i}-error`, '');
-      setFieldError(`contactPhone${i}`, `contact-phone-${i}-error`, '');
-    }
-  }
-
   const consentChecked = document.getElementById('consentCheckbox')?.checked ?? false;
   setError('consent-error', consentChecked ? '' : 'Необходимо дать согласие на обработку персональных данных');
 
   setError('signature-error', hasSignature ? '' : 'Нарисуйте подпись');
 
-  return !!(allergy && implantOk && sedationOk && consentChecked && hasSignature);
+  return !!(allergy && implantOk && consentChecked && hasSignature);
 }
 
 function handlePhoneInput(e) {
@@ -507,23 +429,13 @@ async function handleSubmit(e) {
     id_authority: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('idAuthority').value.trim() : '',
     id_date_of_issue: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('idIssueDate').value : null,
     adress: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('address').value.trim() : '',
-    degree_of_kinship_mother_father_guardin: (procedure === SEDATION_PROCEDURE)
-      ? document.getElementById('sedationRelation').value
-      : '',
-    contact_name_surname_1: (procedure === SEDATION_PROCEDURE ) ? document.getElementById('contactName1').value.trim() : '',
-    contact_phones_1: (procedure === SEDATION_PROCEDURE ) ? document.getElementById('contactPhone1').value.trim() : '',
-    contact_name_surname_2: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 2)
-      ? document.getElementById('contactName2').value.trim()
-      : '',
-    contact_phones_2: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 2)
-      ? document.getElementById('contactPhone2').value.trim()
-      : '',
-    contact_name_surname_3: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 3)
-      ? document.getElementById('contactName3').value.trim()
-      : '',
-    contact_phones_3: (procedure === SEDATION_PROCEDURE  && visibleContacts >= 3)
-      ? document.getElementById('contactPhone3').value.trim()
-      : '',
+    degree_of_kinship_mother_father_guardin: '',
+    contact_name_surname_1: '',
+    contact_phones_1: '',
+    contact_name_surname_2: '',
+    contact_phones_2: '',
+    contact_name_surname_3: '',
+    contact_phones_3: '',
   };
 
   try {
