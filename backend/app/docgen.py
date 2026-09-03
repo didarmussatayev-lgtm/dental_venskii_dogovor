@@ -161,6 +161,7 @@ def generate_docx(
     output_basename: str,
     output_dir: str | Path,
     representative_full_name: str = "",
+    photo_video_consent: bool = False,
 ) -> Path:
     """Fill the DOCX template and return the path to the generated file."""
     normalized_template_path, suspicious_placeholders = _prepare_template_for_render(
@@ -210,6 +211,9 @@ def generate_docx(
         "date": date.today().strftime("%d.%m.%Y"),
         "full_date": now.strftime("%d.%m.%Y %H часов %M минут"),
         "agreement_id": agreement_id,
+        # Photo/video/audio recording consent (checkbox at the end of section 2.5
+        # of the general contract).
+        "agree_disagree": "даю согласие" if photo_video_consent else "не даю согласие",
         "signature": InlineImage(tpl, str(sig_tmp), width=Mm(50)),
     }
 
