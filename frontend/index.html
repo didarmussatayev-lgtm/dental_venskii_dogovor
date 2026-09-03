@@ -96,6 +96,7 @@
             <label for="procedure">Выберите услугу <span class="required">*</span></label>
             <select id="procedure">
               <option value="">Выберите процедуру</option>
+              <option value="Общий - Договор общий">Общий - Договор общий</option>
               <option value="Хирургия - удаление зуба">Хирургия - удаление зуба</option>
               <option value="Ортопедия - Договор на ортопедию">Ортопедия - Договор на ортопедию</option>
               <option value="Имплантация - Договор на имплантацию">Имплантация - Договор на имплантацию</option>
@@ -124,13 +125,20 @@
             <div id="allergy-error" class="error-text"></div>
           </div>
 
-          <div id="implantFields" style="display:none;">
+          <!--
+            Shown for: Имплантация (договор + доп. соглашение) и Ортопедия.
+            Ортопедии нужен только id_number (без id_authority/id_issue_date).
+          -->
+          <div id="idNumberField" style="display:none;">
             <div class="form-group">
               <label for="idNumber">Номер удостоверения личности <span class="required">*</span></label>
               <input type="text" id="idNumber" placeholder="123456789" maxlength="9" inputmode="numeric" />
               <div id="id-number-error" class="error-text"></div>
             </div>
+          </div>
 
+          <!-- Shown only for Имплантация (договор + доп. соглашение). -->
+          <div id="implantOnlyFields" style="display:none;">
             <div class="form-group">
               <label for="idAuthority">Орган, выдавший удостоверения личности <span class="required">*</span></label>
               <input type="text" id="idAuthority" placeholder="Орган выдачи" />
@@ -142,11 +150,63 @@
               <input type="date" id="idIssueDate" />
               <div id="id-issue-date-error" class="error-text"></div>
             </div>
+          </div>
 
+          <!-- Shown for: Имплантация (договор + доп. соглашение) и Общий договор. -->
+          <div id="addressField" style="display:none;">
             <div class="form-group">
               <label for="address">Адрес проживания <span class="required">*</span></label>
               <input type="text" id="address" placeholder="Адрес проживания" />
               <div id="address-error" class="error-text"></div>
+            </div>
+          </div>
+
+          <!--
+            Shown for: Общий договор и Доп. соглашение на имплантацию, но ТОЛЬКО
+            когда degreeOfKinship == "на себя" (в остальных случаях дата рождения
+            уже собрана в childBirthDate на шаге 1).
+          -->
+          <div id="patientBirthDateField" style="display:none;">
+            <div class="form-group">
+              <label for="selfBirthDate">Дата рождения пациента <span class="required">*</span></label>
+              <input type="date" id="selfBirthDate" />
+              <div id="self-birth-date-error" class="error-text"></div>
+            </div>
+          </div>
+
+          <!-- Shown only for: Общий договор (в нём объединены согласие на анестезию/седацию и на лечение). -->
+          <div id="generalContractFields" style="display:none;">
+            <div class="form-group">
+              <label for="degreeOfKinshipMotherFatherGuardin">Отношение к пациенту по степени родства <span class="required">*</span></label>
+              <input type="text" id="degreeOfKinshipMotherFatherGuardin" placeholder="напр. мать, отец, законный представитель, сам пациент" />
+              <div id="degree-of-kinship-mother-father-guardin-error" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+              <label>Контактное лицо 1 (кому можно сообщить о состоянии здоровья) <span class="required">*</span></label>
+              <input type="text" id="contactNameSurname1" placeholder="ФИО" />
+              <input type="text" id="contactPhones1" placeholder="Телефон" class="phone-input" maxlength="18" />
+              <div id="contact-1-error" class="error-text"></div>
+            </div>
+
+            <div class="form-group">
+              <label>Контактное лицо 2 (необязательно)</label>
+              <input type="text" id="contactNameSurname2" placeholder="ФИО" />
+              <input type="text" id="contactPhones2" placeholder="Телефон" class="phone-input" maxlength="18" />
+            </div>
+
+            <div class="form-group">
+              <label>Контактное лицо 3 (необязательно)</label>
+              <input type="text" id="contactNameSurname3" placeholder="ФИО" />
+              <input type="text" id="contactPhones3" placeholder="Телефон" class="phone-input" maxlength="18" />
+            </div>
+
+            <div class="form-group consent-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="photoVideoConsent" />
+                <span>Даю согласие на фото/видео/аудио съемку в ходе получения медицинских услуг</span>
+              </label>
+              <p class="hint">Если не отметить — в документе будет напечатано «не даю согласие».</p>
             </div>
           </div>
 
