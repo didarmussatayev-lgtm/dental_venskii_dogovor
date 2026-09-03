@@ -26,6 +26,13 @@ logger = logging.getLogger(__name__)
 logger.info("=== DEPLOY MARKER v3: template_dir via __file__ ===")
 
 PROCEDURE_TEMPLATES: dict[str, dict[str, str | list[str]]] = {
+    "Общий - Договор общий": {
+        "key": "general_contract",
+        "filenames": [
+            "Договор общий.docx",
+            "Договор_общий.docx",
+        ],
+    },
     "Хирургия - удаление зуба": {
         "key": "surgery_tooth_extraction",
         "filenames": [
@@ -207,6 +214,7 @@ async def create_agreement(body: AgreementRequest):
                 output_basename=output_basename,
                 output_dir=tmp_dir,
                 representative_full_name=representative_full_name,
+                photo_video_consent=body.photo_video_consent,
             )
         except Exception as exc:
             logger.exception("DOCX generation failed for procedure '%s'", body.procedure)
