@@ -1,9 +1,24 @@
 // BACKEND_URL is defined in config.js — change it to your deployed FastAPI URL
 
-const IMPLANT_PROCEDURES = new Set([
-  'Имплантация - Договор на имплантацию',
-  'Имплантация - Дополнительное соглашение на имплантацию',
-]);
+// Procedure identifiers — must exactly match the <option value="..."> in index.html
+// and the keys of PROCEDURE_TEMPLATES / the constants in models.py on the backend.
+const GENERAL_CONTRACT_PROCEDURE = 'Общий - Договор общий';
+const ORTHO_PROCEDURE = 'Ортопедия - Договор на ортопедию';
+const IMPLANT_CONTRACT_PROCEDURE = 'Имплантация - Договор на имплантацию';
+const IMPLANT_ADDENDUM_PROCEDURE = 'Имплантация - Дополнительное соглашение на имплантацию';
+
+const IMPLANT_PROCEDURES = new Set([IMPLANT_CONTRACT_PROCEDURE, IMPLANT_ADDENDUM_PROCEDURE]);
+
+// id_number is printed on the implant templates AND on the orthopedics contract.
+const ID_NUMBER_REQUIRED_PROCEDURES = new Set([...IMPLANT_PROCEDURES, ORTHO_PROCEDURE]);
+
+// adress is printed on the implant templates AND on the general contract.
+const ADDRESS_REQUIRED_PROCEDURES = new Set([...IMPLANT_PROCEDURES, GENERAL_CONTRACT_PROCEDURE]);
+
+// date_of_birth is printed for the patient themselves (not just for a child/ward)
+// on these two templates, regardless of who is signing.
+const DOB_ALWAYS_REQUIRED_PROCEDURES = new Set([GENERAL_CONTRACT_PROCEDURE, IMPLANT_ADDENDUM_PROCEDURE]);
+
 const CHILD_DEGREE_VALUES = new Set([
   'на моего ребенка',
   'на лицо, чьим законным представителем я являюсь',
@@ -113,15 +128,42 @@ function isChildFlow() {
   return CHILD_DEGREE_VALUES.has(getSelectedDegreeOfKinship());
 }
 
+function getSelectedProcedure() {
+  return document.getElementById('procedure')?.value ?? '';
+}
+
 function toggleChildFields() {
   const show = isChildFlow();
   document.getElementById('childFields').style.display = show ? 'block' : 'none';
 }
 
 function toggleDynamicStep3Fields() {
-  const procedure = document.getElementById('procedure')?.value ?? '';
+  const procedure = getSelectedProcedure();
+  const childFlow = isChildFlow();
 
-  document.getElementById('implantFields').style.display = IMPLANT_PROCEDURES.has(procedure) ? 'block' : 'none';
+  const showIdNumber = ID_NUMBER_REQUIRED_PROCEDURES.has(procedure);
+  const showImplantOnly = IMPLANT_PROCEDURES.has(procedure);
+  const showAddress = ADDRESS_REQUIRED_PROCEDURES.has(procedure);
+  const showPatientBirthDate = DOB_ALWAYS_REQUIRED_PROCEDURES.has(procedure) && !childFlow;
+  const showGeneralContract = procedure === GENERAL_CONTRACT_PROCEDURE;
+
+  document.getElementById('idNumberField').style.display = showIdNumber ? 'block' : 'none';
+  document.getElementById('implantOnlyFields').style.display = showImplantOnly ? 'block' : 'none';
+  document.getElementById('addressField').style.display = showAddress ? 'block' : 'none';
+  document.getElementById('patientBirthDateField').style.display = showPatientBirthDate ? 'block' : 'none';
+  document.getElementById('generalContractFields').style.display = showGeneralContract ? 'block' : 'none';
+
+  if (!showIdNumber) setFieldError('idNumber', 'id-number-error', '');
+  if (!showImplantOnly) {
+    setFieldError('idAuthority', 'id-authority-error', '');
+    setFieldError('idIssueDate', 'id-issue-date-error', '');
+  }
+  if (!showAddress) setFieldError('address', 'address-error', '');
+  if (!showPatientBirthDate) setFieldError('selfBirthDate', 'self-birth-date-error', '');
+  if (!showGeneralContract) {
+    setFieldError('degreeOfKinshipMotherFatherGuardin', 'degree-of-kinship-mother-father-guardin-error', '');
+    setError('contact-1-error', '');
+  }
 }
 
 function setError(id, message) {
@@ -241,40 +283,85 @@ function validateStep3() {
     setFieldError('allergy', 'allergy-error', '');
   }
 
-  const procedure = document.getElementById('procedure')?.value ?? '';
+  const procedure = getSelectedProcedure();
+  const childFlow = isChildFlow();
 
-  let implantOk = true;
-  if (IMPLANT_PROCEDURES.has(procedure)) {
+  let idNumberOk = true;
+  if (ID_NUMBER_REQUIRED_PROCEDURES.has(procedure)) {
     const idNumber = document.getElementById('idNumber')?.value.trim() ?? '';
     if (!/^\d{9}$/.test(idNumber)) {
       setFieldError('idNumber', 'id-number-error', 'ID номер должен содержать 9 цифр');
-      implantOk = false;
+      idNumberOk = false;
     } else {
       setFieldError('idNumber', 'id-number-error', '');
     }
+  } else {
+    setFieldError('idNumber', 'id-number-error', '');
+  }
 
+  let implantOnlyOk = true;
+  if (IMPLANT_PROCEDURES.has(procedure)) {
     const idAuthority = document.getElementById('idAuthority')?.value.trim() ?? '';
     if (!idAuthority) {
       setFieldError('idAuthority', 'id-authority-error', 'Введите орган выдачи');
-      implantOk = false;
+      implantOnlyOk = false;
     } else {
       setFieldError('idAuthority', 'id-authority-error', '');
     }
 
-    if (!validateDateById('idIssueDate', 'id-issue-date-error')) implantOk = false;
+    if (!validateDateById('idIssueDate', 'id-issue-date-error')) implantOnlyOk = false;
+  } else {
+    setFieldError('idAuthority', 'id-authority-error', '');
+    setFieldError('idIssueDate', 'id-issue-date-error', '');
+  }
 
+  let addressOk = true;
+  if (ADDRESS_REQUIRED_PROCEDURES.has(procedure)) {
     const address = document.getElementById('address')?.value.trim() ?? '';
     if (!address) {
       setFieldError('address', 'address-error', 'Введите адрес проживания');
-      implantOk = false;
+      addressOk = false;
     } else {
       setFieldError('address', 'address-error', '');
     }
   } else {
-    setFieldError('idNumber', 'id-number-error', '');
-    setFieldError('idAuthority', 'id-authority-error', '');
-    setFieldError('idIssueDate', 'id-issue-date-error', '');
     setFieldError('address', 'address-error', '');
+  }
+
+  let selfBirthDateOk = true;
+  if (DOB_ALWAYS_REQUIRED_PROCEDURES.has(procedure) && !childFlow) {
+    if (!validateDateById('selfBirthDate', 'self-birth-date-error')) selfBirthDateOk = false;
+  } else {
+    setFieldError('selfBirthDate', 'self-birth-date-error', '');
+  }
+
+  let generalContractOk = true;
+  if (procedure === GENERAL_CONTRACT_PROCEDURE) {
+    const relation = document.getElementById('degreeOfKinshipMotherFatherGuardin')?.value.trim() ?? '';
+    if (!relation) {
+      setFieldError(
+        'degreeOfKinshipMotherFatherGuardin',
+        'degree-of-kinship-mother-father-guardin-error',
+        'Укажите отношение к пациенту'
+      );
+      generalContractOk = false;
+    } else {
+      setFieldError('degreeOfKinshipMotherFatherGuardin', 'degree-of-kinship-mother-father-guardin-error', '');
+    }
+
+    const contact1Name = document.getElementById('contactNameSurname1')?.value.trim() ?? '';
+    const contact1PhoneOk = validatePhoneById('contactPhones1', 'contact-1-error', true);
+    if (!contact1Name) {
+      setError('contact-1-error', 'Укажите ФИО контактного лица');
+      generalContractOk = false;
+    } else if (!contact1PhoneOk) {
+      generalContractOk = false;
+    } else {
+      setError('contact-1-error', '');
+    }
+  } else {
+    setFieldError('degreeOfKinshipMotherFatherGuardin', 'degree-of-kinship-mother-father-guardin-error', '');
+    setError('contact-1-error', '');
   }
 
   const consentChecked = document.getElementById('consentCheckbox')?.checked ?? false;
@@ -282,7 +369,16 @@ function validateStep3() {
 
   setError('signature-error', hasSignature ? '' : 'Нарисуйте подпись');
 
-  return !!(allergy && implantOk && consentChecked && hasSignature);
+  return !!(
+    allergy &&
+    idNumberOk &&
+    implantOnlyOk &&
+    addressOk &&
+    selfBirthDateOk &&
+    generalContractOk &&
+    consentChecked &&
+    hasSignature
+  );
 }
 
 function handlePhoneInput(e) {
@@ -411,7 +507,19 @@ async function handleSubmit(e) {
   showLoadingModal();
 
   const childFlow = isChildFlow();
-  const procedure = document.getElementById('procedure').value.trim();
+  const procedure = getSelectedProcedure();
+  const isGeneralContract = procedure === GENERAL_CONTRACT_PROCEDURE;
+  const isImplant = IMPLANT_PROCEDURES.has(procedure);
+  const needsIdNumber = ID_NUMBER_REQUIRED_PROCEDURES.has(procedure);
+  const needsAddress = ADDRESS_REQUIRED_PROCEDURES.has(procedure);
+  const needsSelfBirthDate = DOB_ALWAYS_REQUIRED_PROCEDURES.has(procedure) && !childFlow;
+
+  let dateOfBirth = null;
+  if (childFlow) {
+    dateOfBirth = document.getElementById('childBirthDate').value;
+  } else if (needsSelfBirthDate) {
+    dateOfBirth = document.getElementById('selfBirthDate').value;
+  }
 
   const payload = {
     full_name: document.getElementById('fio').value.trim(),
@@ -424,18 +532,21 @@ async function handleSubmit(e) {
     guardian_relationship: childFlow ? document.getElementById('guardianRelationship').value : '',
     name_surname_of_child: childFlow ? document.getElementById('childFio').value.trim() : '',
     name_surname_patient: childFlow ? document.getElementById('childFio').value.trim() : '',
-    date_of_birth: childFlow ? document.getElementById('childBirthDate').value : null,
-    id_number: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('idNumber').value.trim() : '',
-    id_authority: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('idAuthority').value.trim() : '',
-    id_date_of_issue: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('idIssueDate').value : null,
-    adress: IMPLANT_PROCEDURES.has(procedure) ? document.getElementById('address').value.trim() : '',
-    degree_of_kinship_mother_father_guardin: '',
-    contact_name_surname_1: '',
-    contact_phones_1: '',
-    contact_name_surname_2: '',
-    contact_phones_2: '',
-    contact_name_surname_3: '',
-    contact_phones_3: '',
+    date_of_birth: dateOfBirth,
+    id_number: needsIdNumber ? document.getElementById('idNumber').value.trim() : '',
+    id_authority: isImplant ? document.getElementById('idAuthority').value.trim() : '',
+    id_date_of_issue: isImplant ? document.getElementById('idIssueDate').value : null,
+    adress: needsAddress ? document.getElementById('address').value.trim() : '',
+    degree_of_kinship_mother_father_guardin: isGeneralContract
+      ? document.getElementById('degreeOfKinshipMotherFatherGuardin').value.trim()
+      : '',
+    contact_name_surname_1: isGeneralContract ? document.getElementById('contactNameSurname1').value.trim() : '',
+    contact_phones_1: isGeneralContract ? document.getElementById('contactPhones1').value.trim() : '',
+    contact_name_surname_2: isGeneralContract ? document.getElementById('contactNameSurname2').value.trim() : '',
+    contact_phones_2: isGeneralContract ? document.getElementById('contactPhones2').value.trim() : '',
+    contact_name_surname_3: isGeneralContract ? document.getElementById('contactNameSurname3').value.trim() : '',
+    contact_phones_3: isGeneralContract ? document.getElementById('contactPhones3').value.trim() : '',
+    photo_video_consent: isGeneralContract ? (document.getElementById('photoVideoConsent')?.checked ?? false) : false,
   };
 
   try {
